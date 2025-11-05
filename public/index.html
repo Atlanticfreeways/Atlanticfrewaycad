@@ -328,8 +328,8 @@
         <h1>Banking for the Advancing World of E-Commerce</h1>
         <p class="subtitle">Virtual cards with instant issuance, crypto funding, and global commerce capabilities</p>
         
-        <form class="email-form" id="waitlistForm">
-            <input type="email" id="emailInput" placeholder="Enter your email" required>
+        <form class="email-form" name="waitlist" method="POST" data-netlify="true">
+            <input type="email" name="email" placeholder="Enter your email" required>
             <button type="submit">Notify Me</button>
         </form>
     </div>
@@ -428,37 +428,6 @@
         </div>
     </footer>
     
-    <script>
-        document.getElementById('waitlistForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const email = document.getElementById('emailInput').value;
-            const button = e.target.querySelector('button');
-            
-            button.textContent = 'Submitting...';
-            button.disabled = true;
-            
-            try {
-                const response = await fetch('/api/waitlist', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email })
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    alert('Thanks! You\'re on the waitlist. We\'ll notify you at ' + email);
-                    e.target.reset();
-                } else {
-                    alert('Error: ' + (data.message || 'Please try again'));
-                }
-            } catch (error) {
-                alert('Network error. Please try again.');
-            } finally {
-                button.textContent = 'Notify Me';
-                button.disabled = false;
-            }
-        });
-    </script>
+
 </body>
 </html>

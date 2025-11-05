@@ -4,7 +4,7 @@
 
 **Status**: In Progress  
 **Current Module**: 2.1 - Business Dashboard  
-**Progress**: 70%
+ **Progress**: 70%
 
 ---
 
