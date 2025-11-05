@@ -14,7 +14,7 @@
         
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: rgba(192, 192, 192, 0.15);
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
             min-height: 100vh;
             color: #333;
             font-size: 14px;
@@ -23,17 +23,30 @@
         
         nav {
             padding: 1rem 3%;
-            background: rgba(220, 53, 69, 0.85);
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.18);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
         }
         
         .logo {
             font-size: 18px;
             font-weight: 600;
-            color: white;
+            color: #333;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .logo:hover {
+            color: #dc3545;
         }
         
         .nav-links {
@@ -44,8 +57,13 @@
         }
         
         .nav-links a {
-            color: white;
+            color: #333;
             text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .nav-links a:hover {
+            color: #dc3545;
         }
         
         .container {
@@ -60,37 +78,45 @@
         }
         
         .banner {
-            background: rgba(220, 53, 69, 0.85);
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
             padding: 5rem 3%;
             text-align: center;
-            color: white;
-            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4);
-            border-bottom: 3px solid rgba(220, 53, 69, 1);
+            color: #333;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            margin: 2rem 3%;
+            border-radius: 20px;
         }
         
         .badge {
             display: inline-block;
-            padding: 0.5rem 1.2rem;
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 25px;
-            font-size: 16px;
-            margin-bottom: 1.5rem;
-            font-weight: 700;
+            padding: 0.8rem 2rem;
+            background: rgba(220, 53, 69, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 2px solid rgba(220, 53, 69, 0.3);
+            border-radius: 30px;
+            font-size: 52px;
+            margin-bottom: 2rem;
+            font-weight: 900;
             color: #dc3545;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            letter-spacing: 3px;
+            text-transform: uppercase;
         }
         
         h1 {
-            font-size: 52px;
+            font-size: 28px;
             font-weight: 900;
             margin-bottom: 1rem;
             letter-spacing: -1px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+            color: #333;
         }
         
         .subtitle {
             font-size: 16px;
-            opacity: 0.95;
+            color: #555;
             margin-bottom: 2rem;
             max-width: 600px;
             margin-left: auto;
@@ -114,17 +140,20 @@
         
         button {
             padding: 0.7rem 1.5rem;
-            background: white;
-            color: #667eea;
+            background: #dc3545;
+            color: white;
             border: none;
             border-radius: 4px;
             font-weight: 600;
             cursor: pointer;
             font-size: 13px;
+            transition: all 0.3s ease;
         }
         
         button:hover {
-            opacity: 0.9;
+            background: #c82333;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
         }
         
         section {
@@ -144,10 +173,19 @@
         }
         
         .card {
-            background: #f8f9fa;
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
             padding: 1.2rem;
-            border-radius: 8px;
-            border: 1px solid #e9ecef;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.2);
         }
         
         .icon {
@@ -166,14 +204,16 @@
         }
         
         .pricing-card {
-            background: rgba(220, 53, 69, 0.85);
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
             padding: 1.5rem;
-            border-radius: 8px;
+            border-radius: 16px;
             max-width: 350px;
             margin: 0 auto;
-            color: white;
-            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
-            border: 2px solid rgba(220, 53, 69, 1);
+            color: #333;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.18);
         }
         
         .pricing-card h3 {
@@ -189,7 +229,7 @@
         
         .network {
             font-size: 13px;
-            opacity: 0.8;
+            color: #666;
             margin-bottom: 1rem;
         }
         
@@ -215,11 +255,14 @@
         }
         
         footer {
-            background: rgba(220, 53, 69, 0.85);
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
             padding: 2rem 3%;
             margin-top: 3rem;
-            color: white;
-            box-shadow: 0 -2px 8px rgba(220, 53, 69, 0.3);
+            color: #333;
+            border-top: 1px solid rgba(255, 255, 255, 0.18);
+            box-shadow: 0 -8px 32px 0 rgba(31, 38, 135, 0.1);
         }
         
         .footer-grid {
@@ -245,25 +288,26 @@
         }
         
         .footer-section a {
-            color: rgba(255, 255, 255, 0.9);
+            color: #555;
             text-decoration: none;
         }
         
         .footer-section a:hover {
-            color: white;
+            color: #dc3545;
         }
         
         .footer-bottom {
             text-align: center;
             margin-top: 2rem;
             padding-top: 1.5rem;
-            border-top: 1px solid rgba(255, 255, 255, 0.3);
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
             font-size: 12px;
-            color: rgba(255, 255, 255, 0.9);
+            color: #666;
         }
         
         @media (max-width: 768px) {
-            h1 { font-size: 32px; }
+            h1 { font-size: 20px; }
+            .badge { font-size: 32px; padding: 0.6rem 1.5rem; }
             .nav-links { display: none; }
             .email-form { flex-direction: column; }
             .banner { padding: 3rem 3%; }
@@ -272,7 +316,7 @@
 </head>
 <body>
     <nav>
-        <div class="logo">💳 Atlanticfreway</div>
+        <a href="/" class="logo">Atlanticfreway</a>
         <ul class="nav-links">
             <li><a href="#features">Features</a></li>
             <li><a href="#pricing">Pricing</a></li>
@@ -280,12 +324,12 @@
     </nav>
 
     <div class="banner">
-        <div class="badge">🚀 COMING SOON</div>
+        <div class="badge">LAUNCHING SOON</div>
         <h1>Banking for the Advancing World of E-Commerce</h1>
         <p class="subtitle">Virtual cards with instant issuance, crypto funding, and global commerce capabilities</p>
         
-        <form class="email-form" onsubmit="handleSubmit(event)">
-            <input type="email" placeholder="Enter your email" required>
+        <form class="email-form" id="waitlistForm">
+            <input type="email" id="emailInput" placeholder="Enter your email" required>
             <button type="submit">Notify Me</button>
         </form>
     </div>
@@ -296,37 +340,31 @@
             <h2>Features</h2>
             <div class="grid">
                 <div class="card">
-                    <div class="icon">🏢</div>
                     <h3>Business Cards</h3>
                     <p>Corporate expense management with advanced controls</p>
                 </div>
                 
                 <div class="card">
-                    <div class="icon">💎</div>
                     <h3>Personal Cards</h3>
                     <p>Virtual cards with crypto funding support</p>
                 </div>
                 
                 <div class="card">
-                    <div class="icon">🌍</div>
                     <h3>Global Commerce</h3>
                     <p>Multi-currency support worldwide</p>
                 </div>
                 
                 <div class="card">
-                    <div class="icon">⚡</div>
                     <h3>Instant Issuance</h3>
                     <p>Get virtual cards instantly</p>
                 </div>
                 
                 <div class="card">
-                    <div class="icon">🔒</div>
                     <h3>Bank-Level Security</h3>
                     <p>PCI DSS compliant with fraud detection</p>
                 </div>
                 
                 <div class="card">
-                    <div class="icon">📊</div>
                     <h3>Analytics</h3>
                     <p>Detailed insights and reporting</p>
                 </div>
@@ -354,7 +392,7 @@
     <footer>
         <div class="footer-grid">
             <div class="footer-section">
-                <h4>💳 Atlanticfreway</h4>
+                <h4>Atlanticfreway</h4>
                 <p>Banking for e-commerce</p>
             </div>
             
@@ -391,22 +429,36 @@
     </footer>
     
     <script>
-        function handleSubmit(e) {
+        document.getElementById('waitlistForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const email = e.target.querySelector('input').value;
+            const email = document.getElementById('emailInput').value;
+            const button = e.target.querySelector('button');
             
-            // Redirect to Google Form with pre-filled email
-            // Replace YOUR_FORM_ID with your actual Google Form ID
-            // Replace entry.123456789 with your actual email field entry ID
-            const googleFormUrl = 'https://docs.google.com/forms/d/e/YOUR_FORM_ID/viewform?usp=pp_url&entry.123456789=' + encodeURIComponent(email);
+            button.textContent = 'Submitting...';
+            button.disabled = true;
             
-            // Open Google Form in new tab
-            window.open(googleFormUrl, '_blank');
-            
-            // Show confirmation
-            alert('Thanks! Opening waitlist form...');
-            e.target.reset();
-        }
+            try {
+                const response = await fetch('/api/waitlist', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('Thanks! You\'re on the waitlist. We\'ll notify you at ' + email);
+                    e.target.reset();
+                } else {
+                    alert('Error: ' + (data.message || 'Please try again'));
+                }
+            } catch (error) {
+                alert('Network error. Please try again.');
+            } finally {
+                button.textContent = 'Notify Me';
+                button.disabled = false;
+            }
+        });
     </script>
 </body>
 </html>

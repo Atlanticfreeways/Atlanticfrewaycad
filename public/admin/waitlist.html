@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Waitlist Admin - Atlanticfreway</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #f5f5f5;
+            padding: 2rem;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            padding: 2rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #dc3545;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, rgba(220, 53, 69, 0.1), rgba(220, 53, 69, 0.05));
+            padding: 1.5rem;
+            border-radius: 8px;
+            border-left: 4px solid #dc3545;
+        }
+        
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #dc3545;
+        }
+        
+        .stat-label {
+            color: #666;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+        
+        .actions {
+            margin: 2rem 0;
+            display: flex;
+            gap: 1rem;
+        }
+        
+        button {
+            padding: 0.75rem 1.5rem;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        
+        button:hover {
+            background: #c82333;
+        }
+        
+        button.secondary {
+            background: #6c757d;
+        }
+        
+        button.secondary:hover {
+            background: #5a6268;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 2rem;
+        }
+        
+        th, td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #495057;
+        }
+        
+        tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .email {
+            color: #dc3545;
+            font-weight: 500;
+        }
+        
+        .date {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #6c757d;
+        }
+        
+        .empty {
+            text-align: center;
+            padding: 3rem;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📧 Waitlist Management</h1>
+        <p style="color: #666; margin-bottom: 2rem;">Manage newsletter signups and waitlist entries</p>
+        
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-number" id="totalCount">-</div>
+                <div class="stat-label">Total Signups</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="todayCount">-</div>
+                <div class="stat-label">Today</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="weekCount">-</div>
+                <div class="stat-label">This Week</div>
+            </div>
+        </div>
+        
+        <div class="actions">
+            <button onclick="refreshData()">🔄 Refresh</button>
+            <button onclick="exportCSV()" class="secondary">📥 Export CSV</button>
+            <button onclick="sendEmail()" class="secondary">✉️ Email All</button>
+        </div>
+        
+        <div id="tableContainer">
+            <div class="loading">Loading waitlist data...</div>
+        </div>
+    </div>
+    
+    <script>
+        async function loadStats() {
+            try {
+                const response = await fetch('/api/waitlist/stats');
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('totalCount').textContent = data.data.total;
+                    document.getElementById('todayCount').textContent = data.data.today;
+                    document.getElementById('weekCount').textContent = data.data.this_week;
+                }
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+        
+        async function loadWaitlist() {
+            try {
+                const response = await fetch('/api/waitlist');
+                const data = await response.json();
+                
+                const container = document.getElementById('tableContainer');
+                
+                if (data.success && data.data.length > 0) {
+                    const table = `
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Email</th>
+                                    <th>Source</th>
+                                    <th>IP Address</th>
+                                    <th>Date</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${data.data.map(entry => `
+                                    <tr>
+                                        <td class="email">${entry.email}</td>
+                                        <td>${entry.source}</td>
+                                        <td>${entry.ip_address || 'N/A'}</td>
+                                        <td class="date">${new Date(entry.created_at).toLocaleString()}</td>
+                                        <td>${entry.status}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    `;
+                    container.innerHTML = table;
+                } else {
+                    container.innerHTML = '<div class="empty">No waitlist entries yet</div>';
+                }
+            } catch (error) {
+                console.error('Error loading waitlist:', error);
+                document.getElementById('tableContainer').innerHTML = 
+                    '<div class="empty">Error loading waitlist data</div>';
+            }
+        }
+        
+        function refreshData() {
+            loadStats();
+            loadWaitlist();
+        }
+        
+        function exportCSV() {
+            fetch('/api/waitlist')
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        const csv = [
+                            ['Email', 'Source', 'IP Address', 'Date', 'Status'],
+                            ...data.data.map(e => [
+                                e.email,
+                                e.source,
+                                e.ip_address || '',
+                                new Date(e.created_at).toISOString(),
+                                e.status
+                            ])
+                        ].map(row => row.join(',')).join('\n');
+                        
+                        const blob = new Blob([csv], { type: 'text/csv' });
+                        const url = window.URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `waitlist_${new Date().toISOString().split('T')[0]}.csv`;
+                        a.click();
+                    }
+                });
+        }
+        
+        function sendEmail() {
+            alert('Email functionality coming soon! For now, export CSV and use your email client.');
+        }
+        
+        // Load data on page load
+        loadStats();
+        loadWaitlist();
+        
+        // Auto-refresh every 30 seconds
+        setInterval(refreshData, 30000);
+    </script>
+</body>
+</html>

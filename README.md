@@ -48,10 +48,14 @@ npm run dev
 ```
 
 ### Access Points
-- **API Base**: http://localhost:3000
-- **Business APIs**: http://localhost:3000/api/business
-- **Personal APIs**: http://localhost:3000/api/personal
-- **Shared APIs**: http://localhost:3000/api/shared
+- **Landing Page**: http://localhost:3000
+- **Admin Dashboard**: http://localhost:3000/admin/waitlist.html
+- **API Base**: http://localhost:3000/api/v1
+- **API Docs**: http://localhost:3000/api-docs
+- **Business APIs**: http://localhost:3000/api/v1/business
+- **Personal APIs**: http://localhost:3000/api/v1/personal
+- **Shared APIs**: http://localhost:3000/api/v1/shared
+- **Waitlist API**: http://localhost:3000/api/waitlist
 
 ## 📊 API Endpoints
 
@@ -80,6 +84,13 @@ GET  /api/shared/transactions         - Transaction history
 GET  /api/shared/analytics            - Analytics
 POST /api/shared/webhooks/marqeta     - Marqeta webhooks
 GET  /api/shared/health               - Health check
+```
+
+### Waitlist APIs (Newsletter)
+```
+POST /api/waitlist                    - Add email to waitlist
+GET  /api/waitlist                    - Get all waitlist entries (admin)
+GET  /api/waitlist/stats              - Get waitlist statistics
 ```
 
 ## 🔧 Development Status

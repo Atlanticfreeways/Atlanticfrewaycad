@@ -32,17 +32,24 @@
 3. Enter: `diamondman1960@gmail.com`
 
 ### 5. Update index.html
-Replace in `/public/index.html`:
+Replace in `/public/index.html` (around line 50):
 
-```javascript
-// Line ~280
-const googleFormUrl = 'https://docs.google.com/forms/d/e/YOUR_FORM_ID/viewform?usp=pp_url&entry.123456789=' + encodeURIComponent(email);
+```html
+<form class="email-form" action="https://docs.google.com/forms/d/e/YOUR_FORM_ID/formResponse" method="POST" target="_blank">
+    <input type="email" name="entry.YOUR_ENTRY_ID" placeholder="Enter your email" required>
+    <button type="submit">Notify Me</button>
+</form>
 ```
 
 With your actual values:
-```javascript
-const googleFormUrl = 'https://docs.google.com/forms/d/e/1FAIpQLSc_YOUR_ACTUAL_ID/viewform?usp=pp_url&entry.YOUR_ENTRY_ID=' + encodeURIComponent(email);
+```html
+<form class="email-form" action="https://docs.google.com/forms/d/e/1FAIpQLSc_YOUR_ACTUAL_ID/formResponse" method="POST" target="_blank">
+    <input type="email" name="entry.123456789" placeholder="Enter your email" required>
+    <button type="submit">Notify Me</button>
+</form>
 ```
+
+**Important:** Change `/viewform` to `/formResponse` in the URL!
 
 ## Alternative: Direct Email (No Form)
 

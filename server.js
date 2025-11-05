@@ -19,6 +19,7 @@ const { apiLimiter } = require('./src/middleware/rateLimiter');
 // Import routes
 const v1Routes = require('./src/routes/v1');
 const webhookRoutes = require('./src/routes/webhooks');
+const waitlistRoutes = require('./src/routes/waitlist');
 const { specs, swaggerUi } = require('./src/docs/swagger');
 
 const app = express();
@@ -63,6 +64,7 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
 
 // Routes
 app.use('/api/v1', v1Routes);
+app.use('/api/waitlist', waitlistRoutes);
 app.use('/webhooks', webhookRoutes);
 
 // Legacy routes redirect to v1
