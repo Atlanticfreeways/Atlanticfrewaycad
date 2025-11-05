@@ -1,0 +1,185 @@
+Application token = 09fad57c-cbf8-497f-9f15-ae2bf53b1a2c
+Admin access token = fa2dbbc3-c031-47f8-91f5-9e65be443dad
+Base URL= https://sandbox-api.marqeta.com/v3/
+
+Run the cURL below in a terminal window to view the details of the card product that was created for your sandbox. The response will be a 
+card product,
+indicating that your connection is successfully established.
+
+curl -i \
+  -X GET \
+  -H 'Content-Type: application/json' \
+  --user 09fad57c-cbf8-497f-9f15-ae2bf53b1a2c:fa2dbbc3-c031-47f8-91f5-9e65be443dad \
+  'https://sandbox-api.marqeta.com/v3/cardproducts?sort_by=-lastModifiedTime'
+
+
+Understanding API objects
+The Core API includes objects on which you can call methods that result in, for example, issuing payment cards and customizing card behavior.
+
+Some important Core API objects include:
+
+ card – represents a payment card (physical or virtual) for conducting transactions.
+ user – represents a person who uses a payment card.
+ gpaorder – used to load funds into an account.
+ fundingsource – represents the source from which a gpaorder object draws funds.
+
+Core API Quick Start
+
+Hit the ground running with the Core API Quick Start. Try out essential platform features in a few short steps.
+Start exploring now
+Get to know the Marqeta platform
+
+Platform overview
+Platform overview
+Discover what makes the Marqeta platform unique in this overview of its feature set.
+Key concepts
+Payment card concepts
+Start learning with our collection of common payment card concepts.
+Money movement
+Money movement
+Learn about how money moves via the Marqeta platform.
+Cards
+Payment cards
+Customize the behaviors and attributes of your program's virtual or physical cards.
+Just-in-Time Funding
+Just-in-Time Funding
+Authorize and fund transactions as they occur, without maintaining a card balance.
+Digital wallets and tokenization
+Digital wallets
+Push tokenized cards to digital wallets and enable secure contactless payments.
+Marqeta Dashboard
+Explore, administer, and manage your Marqeta card and payment programs.
+Core API
+Launch and manage your company's payment card program.
+UX Toolkit
+UX Toolkit
+Use our UX Toolkit to enable secure card activities on your applications.
+
+
+
+Marqeta documentation
+
+Build and manage your card program using guides and API reference documentation.
+Try out our APIs
+
+Create your own account and sandbox environment
+Access API credentials to authenticate your build
+Simulate a real-world payment transaction
+Set up a webhook
+Core API Quick Start
+
+Hit the ground running with the Core API Quick Start. Try out essential platform features in a few short steps.
+Start exploring now
+Get to know the Marqeta platform
+
+Platform overview
+Platform overview
+Discover what makes the Marqeta platform unique in this overview of its feature set.
+Key concepts
+Payment card concepts
+Start learning with our collection of common payment card concepts.
+Money movement
+Money movement
+Learn about how money moves via the Marqeta platform.
+Cards
+Payment cards
+Customize the behaviors and attributes of your program's virtual or physical cards.
+Just-in-Time Funding
+Just-in-Time Funding
+Authorize and fund transactions as they occur, without maintaining a card balance.
+Digital wallets and tokenization
+Digital wallets
+Push tokenized cards to digital wallets and enable secure contactless payments.
+Marqeta Dashboard
+Marqeta Dashboard
+Explore, administer, and manage your Marqeta card and payment programs.
+Core API
+Core API
+Launch and manage your company's payment card program.
+UX Toolkit
+UX Toolkit
+Use our UX Toolkit to enable secure card activities on your applications.
+
+
+About UX Toolkit
+UX Toolkit empowers you to build sleek, intuitive interfaces for your applications quickly—it enables secure card activities in your application while limiting your data security compliance burden. UX Toolkit provides a library of highly customizable UI components built on top of Marqeta’s proven API capabilities.
+
+By integrating Marqeta’s UI components, you can build a responsive cardholder-facing UI with minimal development effort that includes features enabling your cardholders to manage their cards, as well as view their account balance and recent transaction history.
+
+Why build with UX Toolkit?
+ Low-code implementation cuts down on development time and helps you launch a branded, embedded program more quickly.
+ Fully compliant, accessible UI components that meet industry standards for compliance, security, fraud prevention, and accessibility. In addition, these components have undergone thorough legal, banking, and card network reviews, ensuring they meet the necessary standards for financial transactions.
+ Rich customer branding enables you to customize your program’s look-and-feel to align with your brand language.
+ Create, test, and manage your brand’s unique theme in real-time for a consistent cardholder experience.
+ The UX Toolkit web components are platform-agnostic, meaning they can be seamlessly integrated into any technology stack you plan to use for your application.
+
+ Features
+Depending on your application, you can include any or all of the following UI components.
+
+Manage cards via these common cardholder operations:
+
+ Activate card
+ Select a card from a list
+ Set and manage PIN
+ Reveal PIN
+ View and copy card details
+ Lock/unlock card
+ Report a card as lost or stolen
+ Replace a damaged card
+ Add a card to a mobile wallet (future development)
+Display an account balance and show your cardholders the details of their accounts:
+
+ View account balance
+ View deposit account details
+ Download statements
+View a list of recent transactions:
+
+ Filter transactions
+ View details of a transaction that is being disputed
+Fund an account from linked external accounts:
+
+ View, link, and manage external funding sources
+ Pull funds from a linked funding source to your cardholder’s account
+File a dispute on a settled transaction:
+
+ Fraud
+ Consumer disputes
+ Processing disputes
+Onboard users to the Marqeta platform:
+
+ Create a user account on the Marqeta platform
+ Perform basic KYC identity verification
+Concepts
+Data security compliance
+Companies that store, transmit, or process sensitive card data, including the primary account number (PAN), card verification value (CVV2), expiration date, and personal identification number (PIN) must comply with the Payment Card Industry Data Security Standard (PCI DSS). Achieving PCI DSS certification is both time consuming and expensive.
+
+UX Toolkit offloads some of the PCI compliance burden (for certain use cases) by enabling the encrypted transmission of sensitive card data. Marqeta is fully PCI-Service Provider Level 1 compliant and handles the unencrypted sensitive card data for you. Your servers never store, transmit, or process the card data.
+
+Warning
+Card data is less secure when copied to the clipboard than when left in a PCI-compliant component. Cardholders should adopt data security best practices and take precautions to keep their sensitive data safe.
+Dynamic card data iframes
+The iframes injected by UX Toolkit enable you to control the styling and layout of the HTML pages you serve to client applications, while delegating secure handling of sensitive data to Marqeta servers. You create and style the UI components using Studio, and UX Toolkit inserts the customized components into the page locations specified in your application’s HTML.
+
+Tip
+To display virtual cards within a mobile application, you can embed the iframes using a webview.
+UX Toolkit platform overview
+The following process describes how the UX Toolkit components are injected into your application using native web components and iframes.
+
+How UX Toolkit injects iframes into your application
+ Your cardholder logs in to your application.
+ Your application renders the page and calls the bootstrap() function, while passing in your Customer Authentication API URL.
+ Your backend and Marqeta’s OAuth endpoint use the Demonstrating Proof of Possession (DPoP)-based OAuth flow. At the end of this flow, your Customer Authentication API sends the resulting access token back to the UX Toolkit client.
+ The UI component requests account user and program data from the Marqeta platform.
+ The account user and program data is fetched, validated, and returned by the Marqeta platform.
+ The UI component makes a request to the Marqeta platform via the iframe endpoint for the PCI data associated with the specific account.
+ The Marqeta platform injects the account data into the HTML container.
+ Your application securely displays the requested PCI data in an iframe.
+For step-by-step instructions on how to set up UX Toolkit, including a tutorial, see UX Toolkit Getting Started.
+
+Studio environment
+Studio is an interactive theming environment where you are encouraged to explore, customize, and gain a comprehensive understanding of how to leverage UX Toolkit properties such as colors and font size in your application’s components. Studio enables you to interact hands-on with each component in a secure sandbox environment, experimenting with various configurations and functionalities.
+
+The various configuration values you develop using Studio are collectively referred to as a theme. Once you have finalized your application’s theme and behaviors using the Studio environment, you use a Marqeta endpoint POST /theme to upload it to the Marqeta platform for use with your card program. For details on how to use this endpoint, see its API reference page.
+
+API endpoints for interacting with Marqeta
+Marqeta API endpoints are available for authenticating with the Marqeta platform and for uploading your application’s theme to Marqeta, once you have finalized it in Studio.

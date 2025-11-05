@@ -1,87 +1,79 @@
 const express = require('express');
-const { authenticateToken, requireAccountType } = require('../middleware/auth');
+const { authenticate } = require('../middleware/authenticate');
 const PersonalService = require('../services/PersonalService');
 
 const router = express.Router();
 
-// All personal routes require authentication
-router.use(authenticateToken);
-router.use(requireAccountType('personal'));
+router.use(authenticate);
 
-// Personal virtual card issuance
-router.post('/cards/virtual', async (req, res) => {
+router.post('/cards', async (req, res, next) => {
   try {
-    const card = await req.personalService.issuePersonalCard(
-      req.user.id,
-      req.body
-    );
+    const personalService = new PersonalService(req.repositories);
+    const card = await personalService.issuePersonalCard(req.user.id, req.body);
     res.status(201).json({ success: true, card });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    next(error);
   }
 });
 
-// Crypto funding
-router.post('/wallet/crypto', async (req, res) => {
+router.get('/cards/:cardId', async (req, res, next) => {
   try {
-    const { amount, cryptoType, walletAddress } = req.body;
-    const transaction = await req.personalService.fundWithCrypto(
-      req.user.id,
-      amount,
-      cryptoType,
-      walletAddress
-    );
-    res.status(201).json({ success: true, transaction });
+    const personalService = new PersonalService(req.repositories);
+    const card = await personalService.getCardDetails(req.params.cardId, req.user.id);
+    res.json({ success: true, card });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    next(error);
   }
 });
 
-// Bank transfer funding
-router.post('/wallet/bank', async (req, res) => {
+router.post('/cards/:cardId/freeze', async (req, res, next) => {
   try {
-    const { amount, bankAccount } = req.body;
-    const transfer = await req.personalService.fundWithBank(
-      req.user.id,
-      amount,
-      bankAccount
-    );
-    res.status(201).json({ success: true, transfer });
+    const personalService = new PersonalService(req.repositories);
+    const card = await personalService.freezeCard(req.params.cardId, req.user.id);
+    res.json({ success: true, card });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    next(error);
   }
 });
 
-// KYC verification
-router.post('/kyc', async (req, res) => {
+router.post('/cards/:cardId/unfreeze', async (req, res, next) => {
   try {
-    const kyc = await req.personalService.submitKYC(req.user.id, req.body);
-    res.status(201).json({ success: true, kyc });
+    const personalService = new PersonalService(req.repositories);
+    const card = await personalService.unfreezeCard(req.params.cardId, req.user.id);
+    res.json({ success: true, card });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    next(error);
   }
 });
 
-// Card controls
-router.post('/cards/:cardId/freeze', async (req, res) => {
+router.get('/wallet', async (req, res, next) => {
   try {
-    const { reason } = req.body;
-    const result = await req.personalService.freezeCard(
-      req.params.cardId,
-      reason
-    );
-    res.json({ success: true, result });
+    const personalService = new PersonalService(req.repositories);
+    const wallet = await personalService.getWallet(req.user.id);
+    res.json({ success: true, wallet });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    next(error);
   }
 });
 
-router.post('/cards/:cardId/unfreeze', async (req, res) => {
+router.post('/wallet/fund', async (req, res, next) => {
   try {
-    const result = await req.personalService.unfreezeCard(req.params.cardId);
-    res.json({ success: true, result });
+    const personalService = new PersonalService(req.repositories);
+    const { amount, source } = req.body;
+    const wallet = await personalService.addFunds(req.user.id, amount, source);
+    res.json({ success: true, wallet });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    next(error);
+  }
+});
+
+router.get('/transactions', async (req, res, next) => {
+  try {
+    const personalService = new PersonalService(req.repositories);
+    const transactions = await personalService.getTransactions(req.user.id, req.query.limit);
+    res.json({ success: true, transactions });
+  } catch (error) {
+    next(error);
   }
 });
 

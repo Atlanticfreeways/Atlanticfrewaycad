@@ -1,126 +1,109 @@
-// Personal Service - Freeway Cards functionality
+const userAdapter = require('../adapters/marqeta/UserAdapter');
+const cardAdapter = require('../adapters/marqeta/CardAdapter');
+const { NotFoundError } = require('../errors/AppError');
+
 class PersonalService {
-  constructor(marqetaAdapter, database, cryptoService, stripeService) {
-    this.marqeta = marqetaAdapter;
-    this.db = database;
-    this.crypto = cryptoService;
-    this.stripe = stripeService;
+  constructor(repositories) {
+    this.userRepo = repositories.user;
+    this.cardRepo = repositories.card;
+    this.walletRepo = repositories.wallet;
+    this.transactionRepo = repositories.transaction;
   }
 
-  // Personal account creation
   async createPersonalAccount(userData) {
-    const user = await this.db.users.create({
-      ...userData,
+    const marqetaUser = await userAdapter.createUser({
+      firstName: userData.firstName,
+      lastName: userData.lastName,
+      email: userData.email,
+      phone: userData.phone
+    });
+
+    const passwordHash = await require('../services/auth/PasswordService').hash(userData.password);
+
+    const user = await this.userRepo.create({
+      email: userData.email,
+      passwordHash,
+      firstName: userData.firstName,
+      lastName: userData.lastName,
+      phone: userData.phone,
       accountType: 'personal',
       role: 'personal',
-      cryptoEnabled: true
-    });
-
-    // Create Marqeta user
-    const marqetaUser = await this.marqeta.createUser({
-      firstName: user.firstName,
-      lastName: user.lastName,
-      email: user.email
-    });
-
-    await this.db.users.update(user.id, {
       marqetaUserToken: marqetaUser.token
     });
+
+    await this.walletRepo.create(user.id);
 
     return user;
   }
 
-  // Personal virtual card issuance
-  async issuePersonalCard(userId, cardConfig) {
-    const user = await this.db.users.findById(userId);
-    
-    const marqetaCard = await this.marqeta.issueCard({
-      cardProductToken: 'personal_card_product',
-      userToken: user.marqetaUserToken,
-      firstName: user.firstName,
-      lastName: user.lastName
+  async issuePersonalCard(userId, cardConfig = {}) {
+    const user = await this.userRepo.findById(userId);
+    if (!user) throw new NotFoundError('User');
+
+    const cardProductToken = process.env.MARQETA_PERSONAL_CARD_PRODUCT || 'personal_card_product';
+
+    const marqetaCard = await cardAdapter.issueCard({
+      userToken: user.marqeta_user_token,
+      cardProductToken
     });
 
-    return await this.db.cards.create({
+    return await this.cardRepo.create({
       userId,
       marqetaCardToken: marqetaCard.token,
-      cardType: 'personal',
-      dailyLimit: cardConfig.dailyLimit || 1000,
-      monthlyLimit: cardConfig.monthlyLimit || 5000,
-      fundingSource: 'personal_wallet'
+      cardType: 'virtual',
+      status: 'active',
+      lastFour: marqetaCard.last_four,
+      metadata: {
+        nickname: cardConfig.nickname || 'Personal Card',
+        dailyLimit: cardConfig.dailyLimit || 1000,
+        monthlyLimit: cardConfig.monthlyLimit || 5000
+      }
     });
   }
 
-  // Crypto funding
-  async fundWithCrypto(userId, amount, cryptoType, walletAddress) {
-    // Process crypto deposit
-    const cryptoTransaction = await this.crypto.processDeposit({
-      userId,
-      amount,
-      cryptoType,
-      walletAddress
-    });
+  async getCardDetails(cardId, userId) {
+    const card = await this.cardRepo.findById(cardId);
+    if (!card || card.user_id !== userId) throw new NotFoundError('Card');
 
-    // Update user wallet balance
-    await this.db.wallets.addFunds(userId, amount, {
-      source: 'crypto',
-      transactionId: cryptoTransaction.id,
-      cryptoType
-    });
+    const panData = await cardAdapter.showPAN(card.marqeta_card_token);
 
-    return cryptoTransaction;
+    return {
+      ...card,
+      pan: panData.pan,
+      cvv: panData.cvv_number,
+      expiration: panData.expiration
+    };
   }
 
-  // Bank transfer funding
-  async fundWithBank(userId, amount, bankAccount) {
-    // Process bank transfer via Stripe
-    const bankTransfer = await this.stripe.createTransfer({
-      amount: amount * 100, // Convert to cents
-      currency: 'usd',
-      source: bankAccount.stripeSourceId
-    });
+  async freezeCard(cardId, userId) {
+    const card = await this.cardRepo.findById(cardId);
+    if (!card || card.user_id !== userId) throw new NotFoundError('Card');
 
-    // Update user wallet balance
-    await this.db.wallets.addFunds(userId, amount, {
-      source: 'bank_transfer',
-      transactionId: bankTransfer.id
-    });
-
-    return bankTransfer;
+    await cardAdapter.updateCardStatus(card.marqeta_card_token, 'frozen');
+    return await this.cardRepo.update(cardId, { status: 'frozen' });
   }
 
-  // KYC verification
-  async submitKYC(userId, kycData) {
-    return await this.db.kyc.create({
-      userId,
-      ...kycData,
-      status: 'pending',
-      submittedAt: new Date()
-    });
+  async unfreezeCard(cardId, userId) {
+    const card = await this.cardRepo.findById(cardId);
+    if (!card || card.user_id !== userId) throw new NotFoundError('Card');
+
+    await cardAdapter.updateCardStatus(card.marqeta_card_token, 'active');
+    return await this.cardRepo.update(cardId, { status: 'active' });
   }
 
-  // Card controls
-  async freezeCard(cardId, reason) {
-    const card = await this.db.cards.findById(cardId);
-    
-    await this.marqeta.updateCardStatus(
-      card.marqetaCardToken, 
-      'frozen', 
-      reason
-    );
-
-    return await this.db.cards.update(cardId, { status: 'frozen' });
+  async getWallet(userId) {
+    return await this.walletRepo.findByUser(userId);
   }
 
-  async unfreezeCard(cardId) {
-    const card = await this.db.cards.findById(cardId);
-    
-    await this.marqeta.updateCardStatus(
-      card.marqetaCardToken, 
-      'active'
-    );
+  async addFunds(userId, amount, source = 'bank_transfer') {
+    const wallet = await this.walletRepo.findByUser(userId);
+    if (!wallet) throw new NotFoundError('Wallet');
 
-    return await this.db.cards.update(cardId, { status: 'active' });
+    return await this.walletRepo.addFunds(userId, amount);
+  }
+
+  async getTransactions(userId, limit = 50) {
+    return await this.transactionRepo.findByUser(userId, limit);
   }
 }
 

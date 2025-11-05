@@ -39,4 +39,3 @@ As the user base grows, the focus shifts to efficiency, advanced features, and d
   * **Compliance & Security**: Leverage Marqeta's tokenization and security features for large-scale operations and regulatory reporting requirements.  
   * **Infrastructure**: Focus on scalable cloud infrastructure (e.g., using AWS for the backend) to handle increased API call volume and ensure low latency for JIT decisions.  
 * **Outcome**: A stable, scalable, enterprise-ready platform capable of managing a large number of cardholders with sophisticated financial controls and valuable data insights.
-

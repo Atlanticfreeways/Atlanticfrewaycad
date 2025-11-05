@@ -1,73 +1,58 @@
 const express = require('express');
-const { authenticateToken, requireRole } = require('../middleware/auth');
+const { authenticate, authorize } = require('../middleware/authenticate');
 const BusinessService = require('../services/BusinessService');
 
 const router = express.Router();
 
-// All business routes require authentication
-router.use(authenticateToken);
+router.use(authenticate);
 
-// Company management (admin only)
-router.post('/companies', requireRole(['admin']), async (req, res) => {
+router.post('/companies', authorize('admin'), async (req, res, next) => {
   try {
-    const company = await req.businessService.createCompany(req.body);
+    const businessService = new BusinessService(req.repositories);
+    const company = await businessService.createCompany(req.body);
     res.status(201).json({ success: true, company });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    next(error);
   }
 });
 
-// Employee management
-router.post('/employees', requireRole(['admin', 'manager']), async (req, res) => {
+router.post('/employees', authorize('admin', 'manager'), async (req, res, next) => {
   try {
-    const employee = await req.businessService.addEmployee(
-      req.user.companyId,
-      req.body
-    );
+    const businessService = new BusinessService(req.repositories);
+    const employee = await businessService.addEmployee(req.user.companyId, req.body);
     res.status(201).json({ success: true, employee });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    next(error);
   }
 });
 
-// Corporate card issuance
-router.post('/cards/corporate', async (req, res) => {
+router.post('/cards/corporate', async (req, res, next) => {
   try {
-    const card = await req.businessService.issueCorporateCard(
-      req.user.id,
-      req.body
-    );
+    const businessService = new BusinessService(req.repositories);
+    const card = await businessService.issueCorporateCard(req.user.id, req.body);
     res.status(201).json({ success: true, card });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    next(error);
   }
 });
 
-// Expense reporting
-router.get('/expenses', requireRole(['admin', 'manager']), async (req, res) => {
+router.get('/expenses', authorize('admin', 'manager'), async (req, res, next) => {
   try {
-    const expenses = await req.businessService.getExpenseReport(
-      req.user.companyId,
-      req.query
-    );
+    const businessService = new BusinessService(req.repositories);
+    const expenses = await businessService.getExpenseReport(req.user.companyId, req.query);
     res.json({ success: true, expenses });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    next(error);
   }
 });
 
-// Spending approvals
-router.post('/approvals/:transactionId', requireRole(['admin', 'manager']), async (req, res) => {
+router.put('/cards/:cardId/controls', authorize('admin', 'manager'), async (req, res, next) => {
   try {
-    const { approved, reason } = req.body;
-    const result = await req.businessService.processSpendingApproval(
-      req.params.transactionId,
-      approved,
-      reason
-    );
-    res.json({ success: true, result });
+    const businessService = new BusinessService(req.repositories);
+    const controls = await businessService.updateSpendingControls(req.params.cardId, req.body);
+    res.json({ success: true, controls });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    next(error);
   }
 });
 
