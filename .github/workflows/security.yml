@@ -20,6 +20,14 @@ jobs:
           path: ./
           base: ${{ github.event.repository.default_branch }}
           head: HEAD
+      
+      - name: GitGuardian Scan (Alternative)
+        uses: GitGuardian/ggshield-action@v1
+        if: false  # Set to true to enable
+        env:
+          GITGUARDIAN_API_KEY: ${{ secrets.GITGUARDIAN_API_KEY }}
+        with:
+          args: scan ci
 
   dependency-scan:
     runs-on: ubuntu-latest
