@@ -1,6 +1,6 @@
 const { AppError } = require('../errors/AppError');
 
-const errorHandler = (err, req, res, next) => {
+const errorHandler = (err, req, res, _next) => {
   let error = err;
 
   if (!(error instanceof AppError)) {

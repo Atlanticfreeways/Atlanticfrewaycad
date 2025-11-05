@@ -1,10 +1,12 @@
 const express = require('express');
 const { authenticate } = require('../middleware/authenticate');
+const { csrfProtection } = require('../middleware/csrf');
 const PersonalService = require('../services/PersonalService');
 
 const router = express.Router();
 
 router.use(authenticate);
+router.use(csrfProtection);
 
 router.post('/cards', async (req, res, next) => {
   try {

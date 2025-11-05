@@ -463,7 +463,7 @@ class MarqetaAdapter extends CardIssuerAdapter {
     return statusMap[status] || 'ACTIVE';
   }
 
-  getReasonCode(status, reason) {
+  getReasonCode(status, _reason) {
     if (status === 'frozen') return '01'; // Fraud
     if (status === 'cancelled') return '02'; // User request
     return '00'; // Normal operation

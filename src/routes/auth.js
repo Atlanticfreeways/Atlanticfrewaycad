@@ -6,6 +6,42 @@ const { authLimiter } = require('../middleware/rateLimiter');
 
 const router = express.Router();
 
+/**
+ * @swagger
+ * /auth/register:
+ *   post:
+ *     summary: Register new user
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - password
+ *               - firstName
+ *               - lastName
+ *               - accountType
+ *             properties:
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *               firstName:
+ *                 type: string
+ *               lastName:
+ *                 type: string
+ *               accountType:
+ *                 type: string
+ *                 enum: [business, personal]
+ *     responses:
+ *       201:
+ *         description: User registered successfully
+ *       400:
+ *         description: Validation error
+ */
 router.post('/register', authLimiter, async (req, res, next) => {
   try {
     const { email, password, firstName, lastName, accountType } = req.body;
@@ -46,6 +82,32 @@ router.post('/register', authLimiter, async (req, res, next) => {
   }
 });
 
+/**
+ * @swagger
+ * /auth/login:
+ *   post:
+ *     summary: Login user
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - password
+ *             properties:
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Login successful
+ *       401:
+ *         description: Invalid credentials
+ */
 router.post('/login', authLimiter, async (req, res, next) => {
   try {
     const { email, password } = req.body;

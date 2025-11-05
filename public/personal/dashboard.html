@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personal Dashboard - Atlanticfrewaycard</title>
+    <link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <div class="logo">💳 Atlanticfrewaycard</div>
+            <div class="nav-links">
+                <a href="/personal/dashboard.html">Dashboard</a>
+                <a href="/personal/cards.html">My Cards</a>
+                <a href="/personal/wallet.html">Wallet</a>
+                <a href="/personal/transactions.html">Transactions</a>
+                <a href="#" id="logoutBtn">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="dashboard">
+        <div class="container">
+            <div class="dashboard-header">
+                <h1>Personal Dashboard</h1>
+                <button class="btn btn-primary" onclick="createCard()">Create New Card</button>
+            </div>
+
+            <div class="card-grid">
+                <div class="card">
+                    <h3>Wallet Balance</h3>
+                    <p class="stat" id="walletBalance">$0.00</p>
+                </div>
+                <div class="card">
+                    <h3>Active Cards</h3>
+                    <p class="stat" id="activeCards">0</p>
+                </div>
+                <div class="card">
+                    <h3>This Month</h3>
+                    <p class="stat" id="monthlySpend">$0.00</p>
+                </div>
+                <div class="card">
+                    <h3>Crypto Balance</h3>
+                    <p class="stat" id="cryptoBalance">$0.00</p>
+                </div>
+            </div>
+
+            <div class="card" style="margin-top: 2rem;">
+                <h2>My Virtual Cards</h2>
+                <div id="cardsContainer" class="card-grid">
+                    <p>Loading cards...</p>
+                </div>
+            </div>
+
+            <div class="card" style="margin-top: 2rem;">
+                <h2>Recent Transactions</h2>
+                <table id="transactionsTable">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Card</th>
+                            <th>Merchant</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="transactionsBody">
+                        <tr>
+                            <td colspan="5" style="text-align: center;">Loading...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/main.js"></script>
+    <script>
+        if (!API.isAuthenticated()) {
+            window.location.href = '/personal/login.html';
+        }
+
+        async function loadDashboard() {
+            try {
+                // Load wallet balance
+                const wallet = await API.request('/personal/wallet');
+                document.getElementById('walletBalance').textContent = formatCurrency(wallet.balance || 0);
+                document.getElementById('cryptoBalance').textContent = formatCurrency(wallet.cryptoBalance || 0);
+
+                // Load cards
+                const cards = await API.request('/personal/cards');
+                displayCards(cards.cards || []);
+                document.getElementById('activeCards').textContent = cards.cards?.length || 0;
+
+                // Load transactions
+                const transactions = await API.request('/shared/transactions?limit=10');
+                displayTransactions(transactions.transactions || []);
+                
+                const monthlyTotal = transactions.transactions?.reduce((sum, tx) => sum + parseFloat(tx.amount), 0) || 0;
+                document.getElementById('monthlySpend').textContent = formatCurrency(monthlyTotal);
+            } catch (error) {
+                showAlert('Failed to load dashboard', 'error');
+            }
+        }
+
+        function displayCards(cards) {
+            const container = document.getElementById('cardsContainer');
+            
+            if (cards.length === 0) {
+                container.innerHTML = '<p>No cards yet. Create your first card!</p>';
+                return;
+            }
+
+            container.innerHTML = cards.map(card => `
+                <div class="card">
+                    <h3>Card •••• ${card.last_four}</h3>
+                    <p>Status: <span class="badge badge-success">${card.status}</span></p>
+                    <p>Type: ${card.card_type}</p>
+                    <button class="btn btn-secondary" onclick="freezeCard('${card.id}')">Freeze</button>
+                </div>
+            `).join('');
+        }
+
+        function displayTransactions(transactions) {
+            const tbody = document.getElementById('transactionsBody');
+            
+            if (transactions.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">No transactions yet</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = transactions.map(tx => `
+                <tr>
+                    <td>${formatDate(tx.created_at)}</td>
+                    <td>•••• ${tx.card_last_four || '****'}</td>
+                    <td>${tx.merchant_name || 'N/A'}</td>
+                    <td>${formatCurrency(tx.amount)}</td>
+                    <td><span class="badge badge-success">${tx.status}</span></td>
+                </tr>
+            `).join('');
+        }
+
+        async function createCard() {
+            try {
+                const card = await API.request('/personal/cards/virtual', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        cardType: 'virtual',
+                        nickname: 'My Card'
+                    })
+                });
+                showAlert('Card created successfully!', 'success');
+                loadDashboard();
+            } catch (error) {
+                showAlert('Failed to create card', 'error');
+            }
+        }
+
+        async function freezeCard(cardId) {
+            try {
+                await API.request(`/personal/cards/${cardId}/freeze`, {
+                    method: 'POST'
+                });
+                showAlert('Card frozen successfully', 'success');
+                loadDashboard();
+            } catch (error) {
+                showAlert('Failed to freeze card', 'error');
+            }
+        }
+
+        document.getElementById('logoutBtn').onclick = (e) => {
+            e.preventDefault();
+            API.logout();
+        };
+
+        loadDashboard();
+    </script>
+</body>
+</html>

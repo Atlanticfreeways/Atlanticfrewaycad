@@ -1,0 +1,59 @@
+<svg width="1200" height="400" viewBox="0 0 1200 400" xmlns="http://www.w3.org/2000/svg">
+  <!-- Gradient Background -->
+  <defs>
+    <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+    </linearGradient>
+    
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <rect width="1200" height="400" fill="url(#grad1)"/>
+  
+  <!-- Decorative Elements -->
+  <circle cx="100" cy="100" r="60" fill="#ffffff" opacity="0.05"/>
+  <circle cx="1100" cy="300" r="80" fill="#ffffff" opacity="0.05"/>
+  <rect x="900" y="50" width="150" height="150" rx="10" fill="#ffffff" opacity="0.03" transform="rotate(15 975 125)"/>
+  
+  <!-- Main Card Visual -->
+  <g transform="translate(150, 120)">
+    <rect width="280" height="180" rx="15" fill="#ffffff" opacity="0.95" filter="url(#glow)"/>
+    <rect x="20" y="20" width="240" height="30" rx="5" fill="#667eea"/>
+    <rect x="20" y="70" width="120" height="15" rx="3" fill="#764ba2" opacity="0.6"/>
+    <rect x="20" y="95" width="160" height="15" rx="3" fill="#764ba2" opacity="0.6"/>
+    <circle cx="240" cy="145" r="25" fill="#FFD700" opacity="0.8"/>
+    <text x="20" y="145" font-family="monospace" font-size="24" fill="#333" font-weight="700">**** 5000</text>
+  </g>
+  
+  <!-- Main Text -->
+  <text x="500" y="150" font-family="Arial, sans-serif" font-size="72" font-weight="800" fill="#ffffff" filter="url(#glow)">
+    COMING SOON
+  </text>
+  
+  <text x="500" y="210" font-family="Arial, sans-serif" font-size="36" font-weight="700" fill="#ffffff">
+    Atlanticfreway
+  </text>
+  
+  <text x="500" y="250" font-family="Arial, sans-serif" font-size="20" fill="#ffffff" opacity="0.9">
+    Banking for the Advancing World of E-Commerce
+  </text>
+  
+  <text x="500" y="290" font-family="Arial, sans-serif" font-size="16" fill="#ffffff" opacity="0.8">
+    🚀 Virtual Cards • 💎 Instant Issuance • 🌍 Global Commerce
+  </text>
+  
+  <!-- Launch Badge -->
+  <g transform="translate(500, 320)">
+    <rect width="200" height="40" rx="20" fill="#ffffff" opacity="0.2"/>
+    <text x="100" y="27" font-family="Arial, sans-serif" font-size="16" font-weight="600" fill="#ffffff" text-anchor="middle">
+      Launching Q1 2025
+    </text>
+  </g>
+</svg>

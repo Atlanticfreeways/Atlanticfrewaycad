@@ -1,6 +1,5 @@
 const express = require('express');
 const { authenticateToken } = require('../middleware/auth');
-const SharedService = require('../services/SharedService');
 
 const router = express.Router();
 

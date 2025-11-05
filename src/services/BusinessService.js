@@ -1,6 +1,6 @@
 const userAdapter = require('../adapters/marqeta/UserAdapter');
 const cardAdapter = require('../adapters/marqeta/CardAdapter');
-const { NotFoundError, ValidationError } = require('../errors/AppError');
+const { NotFoundError } = require('../errors/AppError');
 
 class BusinessService {
   constructor(repositories) {

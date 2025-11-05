@@ -95,7 +95,7 @@ class PersonalService {
     return await this.walletRepo.findByUser(userId);
   }
 
-  async addFunds(userId, amount, source = 'bank_transfer') {
+  async addFunds(userId, amount, _source = 'bank_transfer') {
     const wallet = await this.walletRepo.findByUser(userId);
     if (!wallet) throw new NotFoundError('Wallet');
 

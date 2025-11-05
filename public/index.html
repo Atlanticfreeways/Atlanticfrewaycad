@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Atlanticfreway - Coming Soon</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: rgba(192, 192, 192, 0.15);
+            min-height: 100vh;
+            color: #333;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        
+        nav {
+            padding: 1rem 3%;
+            background: rgba(220, 53, 69, 0.85);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
+        }
+        
+        .logo {
+            font-size: 18px;
+            font-weight: 600;
+            color: white;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 1.5rem;
+            list-style: none;
+            font-size: 13px;
+        }
+        
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem 3%;
+        }
+        
+        .hero {
+            text-align: center;
+            padding: 3rem 0 2rem;
+        }
+        
+        .banner {
+            background: rgba(220, 53, 69, 0.85);
+            padding: 5rem 3%;
+            text-align: center;
+            color: white;
+            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4);
+            border-bottom: 3px solid rgba(220, 53, 69, 1);
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 0.5rem 1.2rem;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 25px;
+            font-size: 16px;
+            margin-bottom: 1.5rem;
+            font-weight: 700;
+            color: #dc3545;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        h1 {
+            font-size: 52px;
+            font-weight: 900;
+            margin-bottom: 1rem;
+            letter-spacing: -1px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        .subtitle {
+            font-size: 16px;
+            opacity: 0.95;
+            margin-bottom: 2rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .email-form {
+            display: flex;
+            gap: 0.5rem;
+            max-width: 400px;
+            margin: 0 auto 3rem;
+        }
+        
+        input {
+            flex: 1;
+            padding: 0.7rem;
+            border: none;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+        
+        button {
+            padding: 0.7rem 1.5rem;
+            background: white;
+            color: #667eea;
+            border: none;
+            border-radius: 4px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 13px;
+        }
+        
+        button:hover {
+            opacity: 0.9;
+        }
+        
+        section {
+            margin: 3rem 0;
+        }
+        
+        h2 {
+            font-size: 20px;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+        
+        .card {
+            background: #f8f9fa;
+            padding: 1.2rem;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+        }
+        
+        .icon {
+            font-size: 28px;
+            margin-bottom: 0.5rem;
+        }
+        
+        .card h3 {
+            font-size: 15px;
+            margin-bottom: 0.4rem;
+        }
+        
+        .card p {
+            font-size: 13px;
+            opacity: 0.85;
+        }
+        
+        .pricing-card {
+            background: rgba(220, 53, 69, 0.85);
+            padding: 1.5rem;
+            border-radius: 8px;
+            max-width: 350px;
+            margin: 0 auto;
+            color: white;
+            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+            border: 2px solid rgba(220, 53, 69, 1);
+        }
+        
+        .pricing-card h3 {
+            font-size: 18px;
+            margin-bottom: 0.3rem;
+        }
+        
+        .price {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 0.3rem;
+        }
+        
+        .network {
+            font-size: 13px;
+            opacity: 0.8;
+            margin-bottom: 1rem;
+        }
+        
+        .features {
+            list-style: none;
+            font-size: 13px;
+        }
+        
+        .features li {
+            padding: 0.3rem 0;
+        }
+        
+        .features li:before {
+            content: "✓ ";
+            font-weight: bold;
+        }
+        
+        .note {
+            text-align: center;
+            margin-top: 1rem;
+            font-size: 12px;
+            opacity: 0.7;
+        }
+        
+        footer {
+            background: rgba(220, 53, 69, 0.85);
+            padding: 2rem 3%;
+            margin-top: 3rem;
+            color: white;
+            box-shadow: 0 -2px 8px rgba(220, 53, 69, 0.3);
+        }
+        
+        .footer-grid {
+            max-width: 900px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 2rem;
+            font-size: 13px;
+        }
+        
+        .footer-section h4 {
+            font-size: 14px;
+            margin-bottom: 0.8rem;
+        }
+        
+        .footer-section ul {
+            list-style: none;
+        }
+        
+        .footer-section li {
+            margin-bottom: 0.4rem;
+        }
+        
+        .footer-section a {
+            color: rgba(255, 255, 255, 0.9);
+            text-decoration: none;
+        }
+        
+        .footer-section a:hover {
+            color: white;
+        }
+        
+        .footer-bottom {
+            text-align: center;
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.3);
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.9);
+        }
+        
+        @media (max-width: 768px) {
+            h1 { font-size: 32px; }
+            .nav-links { display: none; }
+            .email-form { flex-direction: column; }
+            .banner { padding: 3rem 3%; }
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="logo">💳 Atlanticfreway</div>
+        <ul class="nav-links">
+            <li><a href="#features">Features</a></li>
+            <li><a href="#pricing">Pricing</a></li>
+        </ul>
+    </nav>
+
+    <div class="banner">
+        <div class="badge">🚀 COMING SOON</div>
+        <h1>Banking for the Advancing World of E-Commerce</h1>
+        <p class="subtitle">Virtual cards with instant issuance, crypto funding, and global commerce capabilities</p>
+        
+        <form class="email-form" onsubmit="handleSubmit(event)">
+            <input type="email" placeholder="Enter your email" required>
+            <button type="submit">Notify Me</button>
+        </form>
+    </div>
+
+    <div class="container">
+
+        <section id="features">
+            <h2>Features</h2>
+            <div class="grid">
+                <div class="card">
+                    <div class="icon">🏢</div>
+                    <h3>Business Cards</h3>
+                    <p>Corporate expense management with advanced controls</p>
+                </div>
+                
+                <div class="card">
+                    <div class="icon">💎</div>
+                    <h3>Personal Cards</h3>
+                    <p>Virtual cards with crypto funding support</p>
+                </div>
+                
+                <div class="card">
+                    <div class="icon">🌍</div>
+                    <h3>Global Commerce</h3>
+                    <p>Multi-currency support worldwide</p>
+                </div>
+                
+                <div class="card">
+                    <div class="icon">⚡</div>
+                    <h3>Instant Issuance</h3>
+                    <p>Get virtual cards instantly</p>
+                </div>
+                
+                <div class="card">
+                    <div class="icon">🔒</div>
+                    <h3>Bank-Level Security</h3>
+                    <p>PCI DSS compliant with fraud detection</p>
+                </div>
+                
+                <div class="card">
+                    <div class="icon">📊</div>
+                    <h3>Analytics</h3>
+                    <p>Detailed insights and reporting</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="pricing">
+            <h2>Our Plan</h2>
+            <div class="pricing-card">
+                <h3>Atlantic</h3>
+                <div class="price">$5K/mo</div>
+                <p class="network">Visa Cards</p>
+                <ul class="features">
+                    <li>Virtual cards only</li>
+                    <li>Basic KYC</li>
+                    <li>Email & phone verification</li>
+                    <li>Instant approval</li>
+                    <li>Perfect for getting started</li>
+                </ul>
+            </div>
+            <p class="note">More plans coming soon: ACE, Turbo, and Business tiers</p>
+        </section>
+    </div>
+
+    <footer>
+        <div class="footer-grid">
+            <div class="footer-section">
+                <h4>💳 Atlanticfreway</h4>
+                <p>Banking for e-commerce</p>
+            </div>
+            
+            <div class="footer-section">
+                <h4>Product</h4>
+                <ul>
+                    <li><a href="#">Business Cards</a></li>
+                    <li><a href="#">Personal Cards</a></li>
+                    <li><a href="#">Pricing</a></li>
+                </ul>
+            </div>
+            
+            <div class="footer-section">
+                <h4>Company</h4>
+                <ul>
+                    <li><a href="#">About</a></li>
+                    <li><a href="#">Contact</a></li>
+                </ul>
+            </div>
+            
+            <div class="footer-section">
+                <h4>Legal</h4>
+                <ul>
+                    <li><a href="#">Privacy</a></li>
+                    <li><a href="#">Terms</a></li>
+                    <li><a href="#">KYC</a></li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="footer-bottom">
+            <p>© 2024 Atlanticfreway. All rights reserved.</p>
+        </div>
+    </footer>
+    
+    <script>
+        function handleSubmit(e) {
+            e.preventDefault();
+            const email = e.target.querySelector('input').value;
+            
+            // Redirect to Google Form with pre-filled email
+            // Replace YOUR_FORM_ID with your actual Google Form ID
+            // Replace entry.123456789 with your actual email field entry ID
+            const googleFormUrl = 'https://docs.google.com/forms/d/e/YOUR_FORM_ID/viewform?usp=pp_url&entry.123456789=' + encodeURIComponent(email);
+            
+            // Open Google Form in new tab
+            window.open(googleFormUrl, '_blank');
+            
+            // Show confirmation
+            alert('Thanks! Opening waitlist form...');
+            e.target.reset();
+        }
+    </script>
+</body>
+</html>

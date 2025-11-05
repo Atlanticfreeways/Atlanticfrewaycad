@@ -17,11 +17,9 @@ const errorHandler = require('./src/middleware/errorHandler');
 const { apiLimiter } = require('./src/middleware/rateLimiter');
 
 // Import routes
-const authRoutes = require('./src/routes/auth');
-const businessRoutes = require('./src/routes/business');
-const personalRoutes = require('./src/routes/personal');
-const sharedRoutes = require('./src/routes/shared');
+const v1Routes = require('./src/routes/v1');
 const webhookRoutes = require('./src/routes/webhooks');
+const { specs, swaggerUi } = require('./src/docs/swagger');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -60,12 +58,20 @@ app.use(async (req, res, next) => {
   next();
 });
 
+// API Documentation
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
+
 // Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/business', businessRoutes);
-app.use('/api/personal', personalRoutes);
-app.use('/api/shared', sharedRoutes);
+app.use('/api/v1', v1Routes);
 app.use('/webhooks', webhookRoutes);
+
+// Legacy routes redirect to v1
+app.use('/api/*', (req, res, next) => {
+  if (!req.path.startsWith('/v1')) {
+    return res.redirect(308, `/api/v1${req.path}`);
+  }
+  next();
+});
 
 // Serve static files
 app.use(express.static('public'));
@@ -76,10 +82,11 @@ app.get('/', (req, res) => {
     message: 'Atlanticfrewaycard Platform API',
     version: '1.0.0',
     services: {
-      business: '/api/business',
-      personal: '/api/personal',
-      shared: '/api/shared'
+      business: '/api/v1/business',
+      personal: '/api/v1/personal',
+      shared: '/api/v1/shared'
     },
+    apiVersion: 'v1',
     status: 'active'
   });
 });
@@ -101,9 +108,9 @@ app.listen(PORT, async () => {
   console.log(`  - Authentication: JWT with refresh tokens`);
   console.log(`  - Error Handling: Structured errors`);
   console.log(`\n📚 API Endpoints:`);
-  console.log(`  - POST /api/auth/register`);
-  console.log(`  - POST /api/auth/login`);
-  console.log(`  - POST /api/auth/refresh`);
+  console.log(`  - POST /api/v1/auth/register`);
+  console.log(`  - POST /api/v1/auth/login`);
+  console.log(`  - POST /api/v1/auth/refresh`);
 });
 
 module.exports = app;

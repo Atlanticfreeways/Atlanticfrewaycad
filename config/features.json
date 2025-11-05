@@ -1,0 +1,22 @@
+{
+  "cryptoFunding": {
+    "enabled": false,
+    "environments": ["development", "staging"]
+  },
+  "kycVerification": {
+    "enabled": false,
+    "environments": ["development", "staging", "production"]
+  },
+  "multiFactorAuth": {
+    "enabled": false,
+    "environments": ["staging", "production"]
+  },
+  "advancedAnalytics": {
+    "enabled": true,
+    "environments": ["development", "staging", "production"]
+  },
+  "webhookRetry": {
+    "enabled": true,
+    "environments": ["development", "staging", "production"]
+  }
+}

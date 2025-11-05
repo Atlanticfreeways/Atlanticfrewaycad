@@ -1,10 +1,12 @@
 const express = require('express');
 const { authenticate, authorize } = require('../middleware/authenticate');
+const { csrfProtection } = require('../middleware/csrf');
 const BusinessService = require('../services/BusinessService');
 
 const router = express.Router();
 
 router.use(authenticate);
+router.use(csrfProtection);
 
 router.post('/companies', authorize('admin'), async (req, res, next) => {
   try {

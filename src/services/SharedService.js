@@ -73,7 +73,7 @@ class SharedService {
     return { approved: true, amount };
   }
 
-  async handlePersonalApproval(card, amount, merchantName) {
+  async handlePersonalApproval(card, amount, _merchantName) {
     // Check wallet balance
     const wallet = await this.db.wallets.findByUserId(card.userId);
     if (wallet.balance < amount) {
