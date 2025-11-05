@@ -1,0 +1,17 @@
+# Snyk configuration
+version: v1.22.0
+
+# Language settings
+language-settings:
+  javascript:
+    enabled: true
+
+# Exclude paths
+exclude:
+  global:
+    - node_modules/**
+    - coverage/**
+    - dist/**
+    - build/**
+    - '**/*.test.js'
+    - '**/*.spec.js'

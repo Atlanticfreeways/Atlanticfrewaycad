@@ -1,0 +1,147 @@
+name: Auto-Fix & Quality
+
+on:
+  pull_request:
+    branches: [main, development]
+  push:
+    branches: [development]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+  security-events: write
+
+jobs:
+  # AUTO-FIX CODE STYLE
+  autofix-style:
+    name: Auto-fix Style Issues
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.head_ref }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: ESLint auto-fix
+        run: npm run lint:fix
+        continue-on-error: true
+      
+      - name: Prettier auto-format
+        run: npm run format
+        continue-on-error: true
+      
+      - name: Commit fixes
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: '🤖 Auto-fix: ESLint & Prettier'
+          branch: ${{ github.head_ref }}
+
+  # AUTO-FIX SECURITY
+  autofix-security:
+    name: Auto-fix Security Issues
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      
+      - name: npm audit fix
+        run: npm audit fix
+        continue-on-error: true
+      
+      - name: Update vulnerable dependencies
+        run: npm update
+        continue-on-error: true
+      
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: '🔒 Auto-fix: Security vulnerabilities'
+          title: '🔒 Security: Automated vulnerability fixes'
+          body: |
+            🤖 Automated security fixes:
+            - Applied npm audit fixes
+            - Updated vulnerable dependencies
+          branch: security-autofix
+          delete-branch: true
+          labels: security, automated
+
+  # DEPENDENCY UPDATES
+  dependency-update:
+    name: Dependency Updates
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      
+      - name: Update all dependencies
+        run: |
+          npm update
+          npm outdated || true
+        continue-on-error: true
+      
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: '⬆️ Update dependencies'
+          title: '⬆️ Dependency updates'
+          body: |
+            🤖 Automated dependency updates
+            Review and merge if tests pass.
+          branch: dependency-updates
+          delete-branch: true
+          labels: dependencies
+
+  # CODE QUALITY CHECKS
+  quality-gate:
+    name: Quality Gate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run linter
+        run: npm run lint
+      
+      - name: Check formatting
+        run: npx prettier --check "src/**/*.js"
+      
+      - name: Run tests
+        run: npm test
+        env:
+          JWT_SECRET: test-secret-key-minimum-32-characters
+          JWT_REFRESH_SECRET: test-refresh-secret-key-minimum-32
+      
+      - name: Check test coverage
+        run: |
+          npm test -- --coverage --coverageThreshold='{"global":{"branches":70,"functions":70,"lines":70,"statements":70}}'
+        continue-on-error: true

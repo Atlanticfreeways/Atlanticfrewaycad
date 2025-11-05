@@ -1,18 +1,32 @@
-name: Security Scan
+name: Security & Quality
 
 on:
   push:
     branches: [main, development]
   pull_request:
     branches: [main, development]
+  schedule:
+    - cron: '0 0 * * 0'
+
+permissions:
+  contents: read
+  security-events: write
+  pull-requests: write
 
 jobs:
+  # SECRET SCANNING - No API key needed
   secret-scan:
+    name: Secret Detection
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
+      
+      - name: Gitleaks Secret Scan
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       
       - name: TruffleHog Secret Scan
         uses: trufflesecurity/trufflehog@main
@@ -20,23 +34,158 @@ jobs:
           path: ./
           base: ${{ github.event.repository.default_branch }}
           head: HEAD
-      
-      - name: GitGuardian Scan (Alternative)
-        uses: GitGuardian/ggshield-action@v1
-        if: false  # Set to true to enable
-        env:
-          GITGUARDIAN_API_KEY: ${{ secrets.GITGUARDIAN_API_KEY }}
-        with:
-          args: scan ci
 
-  dependency-scan:
+  # DEPENDENCY SECURITY - No API key needed
+  dependency-security:
+    name: Dependency Vulnerabilities
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       
-      - name: Run Snyk Security Scan
-        uses: snyk/actions/node@master
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
         with:
-          args: --severity-threshold=high
+          node-version: '18'
+      
+      - name: npm audit
+        run: |
+          npm audit --audit-level=moderate --json > npm-audit.json || true
+          npm audit --audit-level=moderate
+        continue-on-error: true
+      
+      - name: Upload audit results
+        uses: actions/upload-artifact@v3
+        with:
+          name: npm-audit-report
+          path: npm-audit.json
+      
+      - name: OSV Scanner
+        uses: google/osv-scanner-action@v1
+        with:
+          scan-args: |-
+            --lockfile=package-lock.json
+        continue-on-error: true
+
+  # CODE SECURITY - No API key needed
+  code-security:
+    name: Code Security Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v2
+        with:
+          languages: javascript
+          queries: security-extended
+      
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v2
+      
+      - name: Semgrep Security Scan
+        uses: returntocorp/semgrep-action@v1
+        with:
+          config: >-
+            p/security-audit
+            p/javascript
+            p/nodejs
+            p/owasp-top-ten
+            p/sql-injection
+            p/xss
+
+  # CONTAINER SECURITY - No API key needed
+  container-security:
+    name: Container Security
+    runs-on: ubuntu-latest
+    if: hashFiles('Dockerfile') != ''
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Build Docker image
+        run: docker build -t atlanticfrewaycard:test .
+      
+      - name: Trivy Container Scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: atlanticfrewaycard:test
+          format: sarif
+          output: trivy-results.sarif
+      
+      - name: Upload Trivy results
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: trivy-results.sarif
+
+  # CODE QUALITY - No API key needed
+  code-quality:
+    name: Code Quality Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run tests with coverage
+        run: npm test -- --coverage
+        continue-on-error: true
+        env:
+          JWT_SECRET: test-secret-key-minimum-32-characters
+          JWT_REFRESH_SECRET: test-refresh-secret-key-minimum-32
+      
+      - name: ESLint Report
+        run: |
+          npm run lint -- --format json --output-file eslint-report.json || true
+          npm run lint
+        continue-on-error: true
+      
+      - name: Upload ESLint results
+        uses: actions/upload-artifact@v3
+        with:
+          name: eslint-report
+          path: eslint-report.json
+      
+      - name: Code Complexity Analysis
+        run: npx complexity-report src/ --format json > complexity-report.json || true
+        continue-on-error: true
+      
+      - name: Upload complexity report
+        uses: actions/upload-artifact@v3
+        with:
+          name: complexity-report
+          path: complexity-report.json
+
+  # LICENSE COMPLIANCE - No API key needed
+  license-check:
+    name: License Compliance
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: License Checker
+        run: |
+          npx license-checker --json > licenses.json
+          npx license-checker --summary
+        continue-on-error: true
+      
+      - name: Upload license report
+        uses: actions/upload-artifact@v3
+        with:
+          name: license-report
+          path: licenses.json

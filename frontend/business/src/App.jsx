@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Login from './components/Login';
+import Register from './components/Register';
 import Dashboard from './components/Dashboard';
 import { useAuthStore } from './hooks/useAuth';
 
@@ -17,7 +18,8 @@ export default function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<Login />} />
-          <Route path="/dashboard" element={
+          <Route path="/register" element={<Register />} />
+          <Route path="/dashboard/*" element={
             <ProtectedRoute>
               <Dashboard />
             </ProtectedRoute>

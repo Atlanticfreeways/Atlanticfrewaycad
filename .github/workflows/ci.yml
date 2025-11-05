@@ -50,6 +50,9 @@ jobs:
       - name: Run linter
         run: npm run lint
       
+      - name: Check code formatting
+        run: npx prettier --check "src/**/*.js"
+      
       - name: Run tests
         run: npm test
         env:
@@ -65,3 +68,11 @@ jobs:
         uses: codecov/codecov-action@v3
         with:
           files: ./coverage/lcov.info
+      
+      - name: Test Report
+        uses: dorny/test-reporter@v1
+        if: always()
+        with:
+          name: Jest Tests
+          path: coverage/junit.xml
+          reporter: jest-junit
