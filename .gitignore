@@ -1,5 +1,7 @@
 node_modules/
 .env
+.env.local
+.env.*.local
 .DS_Store
 coverage/
 dist/
@@ -18,4 +20,42 @@ BEST_PRACTICES_GUIDE.md
 IMPLEMENTATION_CHECKLIST.md
 ROADMAP.md
 TASK_*.md
+NEXT_TASK.md
+CURRENT_STATUS.md
 .github/IMPLEMENTATION_CHECKLIST.md
+
+# Marqeta API references and integration
+about marqeta api/
+marqeta.txt
+*PROJ*.md
+marqeta-*.json
+marqeta-config.*
+
+# Database migrations (contain schema details)
+database/migrations/*.sql
+migrations/*.sql
+schema.sql
+test_data.sql
+
+# Deployment and production configs
+Procfile
+DEPLOYMENT.md
+.env.production
+.env.staging
+netlify.toml
+
+# Audit and security reports
+audit-report.json
+SECURITY_AUDIT.md
+SECURITY_FIXES*.md
+
+# Test fixtures with potential sensitive data
+tests/fixtures/*.json
+tests/integration/marqeta/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~

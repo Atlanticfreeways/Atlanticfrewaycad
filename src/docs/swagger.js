@@ -15,12 +15,8 @@ const options = {
     },
     servers: [
       {
-        url: 'http://localhost:3000/api/v1',
-        description: 'Development server'
-      },
-      {
-        url: 'https://api.atlanticfrewaycard.com/api/v1',
-        description: 'Production server'
+        url: process.env.API_BASE_URL || '/api/v1',
+        description: process.env.NODE_ENV === 'production' ? 'Production server' : 'Development server'
       }
     ],
     components: {
