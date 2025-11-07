@@ -2,6 +2,11 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
+const cookieParser = require('cookie-parser');
+const logger = require('./src/utils/logger');
+const corsOptions = require('./config/corsConfig');
+const { csrfProtection, csrfErrorHandler } = require('./src/middleware/csrfProtection');
+const { sanitizeInput } = require('./src/utils/sanitize');
 
 // Import database
 const dbConnection = require('./src/database/connection');
@@ -27,12 +32,24 @@ const PORT = process.env.PORT || 3000;
 
 // Security middleware
 app.use(helmet());
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(apiLimiter);
 
 // Body parsing
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
+
+// Input sanitization middleware
+app.use((req, res, next) => {
+  if (req.body && typeof req.body === 'object') {
+    req.body = sanitizeInput(req.body);
+  }
+  if (req.query && typeof req.query === 'object') {
+    req.query = sanitizeInput(req.query);
+  }
+  next();
+});
 
 // Initialize database and repositories
 const initializeDatabase = async () => {
@@ -62,15 +79,36 @@ app.use(async (req, res, next) => {
 // API Documentation
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
 
-// Routes
+// CSRF token endpoint
+app.get('/api/v1/csrf-token', csrfProtection, (req, res) => {
+  res.json({ csrfToken: req.csrfToken() });
+});
+
+// Health check endpoint
+app.get('/health', async (req, res) => {
+  const health = await dbConnection.healthCheck();
+  const status = health.postgres === 'healthy' && health.redis === 'healthy' ? 200 : 503;
+  res.status(status).json({
+    status: status === 200 ? 'healthy' : 'unhealthy',
+    timestamp: new Date().toISOString(),
+    services: health,
+    version: '1.0.0'
+  });
+});
+
+// Routes (webhooks before CSRF to use signature verification)
+app.use('/webhooks', webhookRoutes);
 app.use('/api/v1', v1Routes);
 app.use('/api/waitlist', waitlistRoutes);
-app.use('/webhooks', webhookRoutes);
 
-// Legacy routes redirect to v1
+// Legacy routes redirect to v1 (with path validation)
 app.use('/api/*', (req, res, next) => {
   if (!req.path.startsWith('/v1')) {
-    return res.redirect(308, `/api/v1${req.path}`);
+    const safePath = `/api/v1${req.path}`.replace(/\.\./g, '');
+    if (safePath.startsWith('/api/v1')) {
+      return res.redirect(308, safePath);
+    }
+    return res.status(400).json({ error: 'Invalid path' });
   }
   next();
 });
@@ -93,6 +131,9 @@ app.get('/', (req, res) => {
   });
 });
 
+// CSRF error handler
+app.use(csrfErrorHandler);
+
 // Error handling
 app.use(errorHandler);
 
@@ -102,17 +143,21 @@ app.use((req, res) => {
 });
 
 app.listen(PORT, async () => {
+  logger.info('Atlanticfrewaycard Platform started', {
+    port: PORT,
+    environment: process.env.NODE_ENV || 'development'
+  });
   console.log(`\n🚀 Atlanticfrewaycard Platform`);
   console.log(`📡 Server: http://localhost:${PORT}`);
   console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`\n✓ Phase 1 Implementation Active`);
-  console.log(`  - Database Layer: PostgreSQL + Redis`);
-  console.log(`  - Authentication: JWT with refresh tokens`);
-  console.log(`  - Error Handling: Structured errors`);
-  console.log(`\n📚 API Endpoints:`);
+  console.log(`\n✓ Security Enhancements Active`);
+  console.log(`  - CSRF Protection: Enabled`);
+  console.log(`  - CORS: Restricted`);
+  console.log(`  - Logging: Winston`);
+  console.log(`\n📚 Endpoints:`);
+  console.log(`  - GET  /health`);
+  console.log(`  - GET  /api/v1/csrf-token`);
   console.log(`  - POST /api/v1/auth/register`);
-  console.log(`  - POST /api/v1/auth/login`);
-  console.log(`  - POST /api/v1/auth/refresh`);
 });
 
 module.exports = app;

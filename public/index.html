@@ -328,10 +328,11 @@
         <h1>Banking for the Advancing World of E-Commerce</h1>
         <p class="subtitle">Virtual cards with instant issuance, crypto funding, and global commerce capabilities</p>
         
-        <form class="email-form" name="waitlist" method="POST" data-netlify="true">
-            <input type="email" name="email" placeholder="Enter your email" required>
+        <form class="email-form" id="waitlistForm">
+            <input type="email" id="emailInput" placeholder="Enter your email" required>
             <button type="submit">Notify Me</button>
         </form>
+        <p id="formMessage" style="margin-top: 1rem; font-size: 14px;"></p>
     </div>
 
     <div class="container">
@@ -428,6 +429,41 @@
         </div>
     </footer>
     
-
+    <script>
+        document.getElementById('waitlistForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('emailInput').value;
+            const message = document.getElementById('formMessage');
+            const button = e.target.querySelector('button');
+            
+            button.disabled = true;
+            button.textContent = 'Submitting...';
+            
+            try {
+                const response = await fetch('/api/waitlist', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    message.style.color = '#28a745';
+                    message.textContent = '✓ ' + data.message;
+                    document.getElementById('emailInput').value = '';
+                } else {
+                    message.style.color = '#dc3545';
+                    message.textContent = '✗ ' + (data.error || 'Failed to join waitlist');
+                }
+            } catch (error) {
+                message.style.color = '#dc3545';
+                message.textContent = '✗ Network error. Please try again.';
+            } finally {
+                button.disabled = false;
+                button.textContent = 'Notify Me';
+            }
+        });
+    </script>
 </body>
 </html>

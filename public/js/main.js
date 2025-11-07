@@ -1,8 +1,20 @@
 const API_BASE = '/api/v1';
 
+function sanitizeToken(token) {
+  if (!token || typeof token !== 'string') return null;
+  return token.replace(/[<>"']/g, '');
+}
+
+function sanitizeHTML(str) {
+  if (!str) return '';
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
 class API {
   static async request(endpoint, options = {}) {
-    const token = localStorage.getItem('accessToken');
+    const token = sanitizeToken(localStorage.getItem('accessToken'));
     const headers = {
       'Content-Type': 'application/json',
       ...options.headers
@@ -38,8 +50,8 @@ class API {
     });
 
     if (data.tokens) {
-      localStorage.setItem('accessToken', data.tokens.accessToken);
-      localStorage.setItem('refreshToken', data.tokens.refreshToken);
+      localStorage.setItem('accessToken', sanitizeToken(data.tokens.accessToken));
+      localStorage.setItem('refreshToken', sanitizeToken(data.tokens.refreshToken));
       localStorage.setItem('user', JSON.stringify(data.user));
     }
 
@@ -53,8 +65,8 @@ class API {
     });
 
     if (data.tokens) {
-      localStorage.setItem('accessToken', data.tokens.accessToken);
-      localStorage.setItem('refreshToken', data.tokens.refreshToken);
+      localStorage.setItem('accessToken', sanitizeToken(data.tokens.accessToken));
+      localStorage.setItem('refreshToken', sanitizeToken(data.tokens.refreshToken));
       localStorage.setItem('user', JSON.stringify(data.user));
     }
 
@@ -69,8 +81,12 @@ class API {
   }
 
   static getUser() {
-    const user = localStorage.getItem('user');
-    return user ? JSON.parse(user) : null;
+    try {
+      const user = localStorage.getItem('user');
+      return user ? JSON.parse(user) : null;
+    } catch (e) {
+      return null;
+    }
   }
 
   static isAuthenticated() {
@@ -80,8 +96,8 @@ class API {
 
 function showAlert(message, type = 'success') {
   const alert = document.createElement('div');
-  alert.className = `alert alert-${type}`;
-  alert.textContent = message;
+  alert.className = `alert alert-${sanitizeHTML(type)}`;
+  alert.textContent = sanitizeHTML(message);
   
   const container = document.querySelector('.container');
   if (container) {

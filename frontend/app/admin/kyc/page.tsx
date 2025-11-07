@@ -1,11 +1,12 @@
 'use client';
 import { useState, useEffect } from 'react';
+import { getApiUrl } from '../../utils/urlValidator';
 
 export default function AdminKYC() {
   const [verifications, setVerifications] = useState<any[]>([]);
 
   useEffect(() => {
-    fetch(`${process.env.API_URL}/kyc/admin/pending`, {
+    fetch(getApiUrl('/kyc/admin/pending'), {
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
     })
       .then(res => res.json())
@@ -13,7 +14,7 @@ export default function AdminKYC() {
   }, []);
 
   const handleApprove = async (id: string) => {
-    await fetch(`${process.env.API_URL}/kyc/admin/approve/${id}`, {
+    await fetch(getApiUrl(`/kyc/admin/approve/${id}`), {
       method: 'POST',
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
     });

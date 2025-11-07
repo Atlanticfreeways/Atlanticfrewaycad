@@ -1,5 +1,6 @@
 const request = require('supertest');
 const app = require('../../../server');
+const testConfig = require('../../fixtures/testConfig');
 
 describe('KYC Routes', () => {
   let token;
@@ -7,7 +8,7 @@ describe('KYC Routes', () => {
   beforeAll(async () => {
     const res = await request(app)
       .post('/api/v1/auth/login')
-      .send({ email: 'test@example.com', password: 'Test123!' });
+      .send({ email: testConfig.testUser.email, password: testConfig.testUser.password });
     token = res.body.tokens.accessToken;
   });
 

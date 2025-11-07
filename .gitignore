@@ -9,3 +9,13 @@ build/
 frontend/node_modules/
 frontend/.next/
 frontend/out/
+logs/*.log
+register.json
+
+# Task tracking and documentation
+ALL_TASKS.md
+BEST_PRACTICES_GUIDE.md
+IMPLEMENTATION_CHECKLIST.md
+ROADMAP.md
+TASK_*.md
+.github/IMPLEMENTATION_CHECKLIST.md

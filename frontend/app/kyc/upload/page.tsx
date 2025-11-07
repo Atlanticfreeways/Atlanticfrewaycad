@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import { getApiUrl } from '../../utils/urlValidator';
 
 export default function KYCUpload() {
   const [tier, setTier] = useState('ace');
@@ -14,7 +15,7 @@ export default function KYCUpload() {
     Object.entries(files).forEach(([key, file]) => formData.append(key, file));
 
     try {
-      await fetch(`${process.env.API_URL}/kyc/verify`, {
+      await fetch(getApiUrl('/kyc/verify'), {
         method: 'POST',
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
         body: formData

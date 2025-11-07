@@ -15,5 +15,8 @@ module.exports = {
       statements: 70
     }
   },
-  setupFilesAfterEnv: ['<rootDir>/tests/setup.js']
+  setupFilesAfterEnv: ['<rootDir>/tests/setup.js'],
+  transformIgnorePatterns: [
+    'node_modules/(?!(dompurify|parse5)/)',
+  ]
 };

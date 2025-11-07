@@ -1,9 +1,10 @@
 const PasswordService = require('../../../src/services/auth/PasswordService');
+const testConfig = require('../../fixtures/testConfig');
 
 describe('PasswordService', () => {
   describe('validate', () => {
     it('should validate strong password', () => {
-      const result = PasswordService.validate('StrongPass123!');
+      const result = PasswordService.validate(testConfig.testUser.password);
       expect(result.valid).toBe(true);
     });
 
@@ -16,7 +17,7 @@ describe('PasswordService', () => {
 
   describe('hash and compare', () => {
     it('should hash and verify password', async () => {
-      const password = 'TestPassword123!';
+      const password = testConfig.testUser.password;
       const hash = await PasswordService.hash(password);
       expect(hash).toBeDefined();
       expect(hash).not.toBe(password);

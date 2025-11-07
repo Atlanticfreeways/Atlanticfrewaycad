@@ -1,5 +1,6 @@
 const request = require('supertest');
 const app = require('../../../server');
+const testConfig = require('../../fixtures/testConfig');
 
 describe('Auth Routes', () => {
   describe('POST /api/auth/register', () => {
@@ -7,10 +8,10 @@ describe('Auth Routes', () => {
       const res = await request(app)
         .post('/api/auth/register')
         .send({
-          email: 'test@example.com',
-          password: 'StrongPass123!',
-          firstName: 'Test',
-          lastName: 'User',
+          email: testConfig.testUser.email,
+          password: testConfig.testUser.password,
+          firstName: testConfig.testUser.firstName,
+          lastName: testConfig.testUser.lastName,
           accountType: 'personal'
         });
       
@@ -25,9 +26,9 @@ describe('Auth Routes', () => {
         .post('/api/auth/register')
         .send({
           email: 'invalid',
-          password: 'StrongPass123!',
-          firstName: 'Test',
-          lastName: 'User',
+          password: testConfig.testUser.password,
+          firstName: testConfig.testUser.firstName,
+          lastName: testConfig.testUser.lastName,
           accountType: 'personal'
         });
       
@@ -40,8 +41,8 @@ describe('Auth Routes', () => {
       const res = await request(app)
         .post('/api/auth/login')
         .send({
-          email: 'test@example.com',
-          password: 'StrongPass123!'
+          email: testConfig.testUser.email,
+          password: testConfig.testUser.password
         });
       
       expect(res.status).toBe(200);
@@ -52,7 +53,7 @@ describe('Auth Routes', () => {
       const res = await request(app)
         .post('/api/auth/login')
         .send({
-          email: 'test@example.com',
+          email: testConfig.testUser.email,
           password: 'wrong'
         });
       

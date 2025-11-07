@@ -1,7 +1,8 @@
 import axios from 'axios';
+import { getApiUrl } from '../utils/urlValidator';
 
 const api = axios.create({
-  baseURL: '/api',
+  baseURL: getApiUrl(''),
   headers: { 'Content-Type': 'application/json' }
 });
 
