@@ -42,8 +42,8 @@
     "winston": "^3.18.3"
   },
   "engines": {
-    "node": "16.x",
-    "npm": "8.x"
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
   },
   "devDependencies": {
     "eslint": "^8.54.0",
