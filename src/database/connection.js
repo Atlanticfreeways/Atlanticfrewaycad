@@ -11,7 +11,13 @@ class DatabaseConnection {
   async initPostgres(retries = 5) {
     for (let i = 0; i < retries; i++) {
       try {
-        this.pgPool = new Pool({
+        // Use DATABASE_URL if available (Railway), otherwise use individual vars
+        const poolConfig = process.env.DATABASE_URL ? {
+          connectionString: process.env.DATABASE_URL,
+          ssl: process.env.NODE_ENV === 'production' ? {
+            rejectUnauthorized: false
+          } : false
+        } : {
           host: process.env.POSTGRES_HOST || 'localhost',
           port: process.env.POSTGRES_PORT || 5432,
           database: process.env.POSTGRES_DB || 'atlanticfrewaycard',
@@ -21,9 +27,11 @@ class DatabaseConnection {
           idleTimeoutMillis: 30000,
           connectionTimeoutMillis: 5000,
           ssl: process.env.NODE_ENV === 'production' ? {
-            rejectUnauthorized: true
+            rejectUnauthorized: false
           } : false
-        });
+        };
+        
+        this.pgPool = new Pool(poolConfig);
 
         this.pgPool.on('error', (err) => {
           logger.error('Unexpected PostgreSQL error', { error: err.message });
