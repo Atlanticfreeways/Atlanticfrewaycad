@@ -48,21 +48,30 @@ class DatabaseConnection {
     }
   }
 
-  async initRedis() {
-    this.redisClient = redis.createClient({
-      socket: {
-        host: process.env.REDIS_HOST || 'localhost',
-        port: process.env.REDIS_PORT || 6379,
-      },
-      password: process.env.REDIS_PASSWORD,
-    });
+  async initRedis(retries = 5) {
+    for (let i = 0; i < retries; i++) {
+      try {
+        this.redisClient = redis.createClient({
+          socket: {
+            host: process.env.REDIS_HOST || 'localhost',
+            port: process.env.REDIS_PORT || 6379,
+          },
+          password: process.env.REDIS_PASSWORD,
+        });
 
-    this.redisClient.on('error', (err) => {
-      logger.error('Redis error', { error: err.message });
-    });
+        this.redisClient.on('error', (err) => {
+          logger.error('Redis error', { error: err.message });
+        });
 
-    await this.redisClient.connect();
-    logger.info('Redis connected');
+        await this.redisClient.connect();
+        logger.info('Redis connected');
+        return;
+      } catch (err) {
+        logger.error(`Redis connection attempt ${i + 1} failed`, { error: err.message });
+        if (i === retries - 1) throw err;
+        await new Promise(resolve => setTimeout(resolve, 3000));
+      }
+    }
   }
 
   async init() {
@@ -84,14 +93,33 @@ class DatabaseConnection {
   }
 
   async healthCheck() {
+    const status = { postgres: 'unknown', redis: 'unknown' };
+    
     try {
-      await this.pgPool.query('SELECT 1');
-      await this.redisClient.ping();
-      return { postgres: 'healthy', redis: 'healthy' };
+      if (this.pgPool) {
+        await this.pgPool.query('SELECT 1');
+        status.postgres = 'healthy';
+      } else {
+        status.postgres = 'not_initialized';
+      }
     } catch (err) {
-      logger.error('Health check failed', { error: err.message });
-      return { postgres: 'unhealthy', redis: 'unhealthy', error: err.message };
+      status.postgres = 'unhealthy';
+      logger.error('PostgreSQL health check failed', { error: err.message });
     }
+    
+    try {
+      if (this.redisClient && this.redisClient.isOpen) {
+        await this.redisClient.ping();
+        status.redis = 'healthy';
+      } else {
+        status.redis = 'not_initialized';
+      }
+    } catch (err) {
+      status.redis = 'unhealthy';
+      logger.error('Redis health check failed', { error: err.message });
+    }
+    
+    return status;
   }
 }
 

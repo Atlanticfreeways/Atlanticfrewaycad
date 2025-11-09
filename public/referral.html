@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Refer & Earn - Atlanticfrewaycard</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; line-height: 1.6; }
+        
+        .hero { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 100px 20px; text-align: center; }
+        .hero h1 { font-size: 3.5em; margin-bottom: 20px; font-weight: 800; }
+        .hero p { font-size: 1.5em; margin-bottom: 40px; opacity: 0.95; }
+        .cta-btn { background: white; color: #667eea; padding: 18px 50px; border-radius: 50px; text-decoration: none; font-weight: bold; font-size: 1.2em; display: inline-block; transition: transform 0.3s; }
+        .cta-btn:hover { transform: scale(1.05); }
+        
+        .container { max-width: 1200px; margin: 0 auto; padding: 80px 20px; }
+        
+        .stats { background: #f8f9fa; padding: 60px 20px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 40px; max-width: 1000px; margin: 0 auto; text-align: center; }
+        .stat-item h2 { font-size: 3.5em; color: #667eea; margin-bottom: 10px; font-weight: bold; }
+        .stat-item p { color: #666; font-size: 1.1em; }
+        
+        .tiers { padding: 80px 20px; background: white; }
+        .tiers h2 { text-align: center; font-size: 2.5em; margin-bottom: 50px; color: #333; }
+        .tier-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 30px; max-width: 1200px; margin: 0 auto; }
+        .tier-card { background: white; border: 3px solid #e0e0e0; border-radius: 16px; padding: 40px; text-align: center; transition: all 0.3s; position: relative; overflow: hidden; }
+        .tier-card:hover { transform: translateY(-10px); border-color: #667eea; box-shadow: 0 20px 40px rgba(102, 126, 234, 0.2); }
+        .tier-badge { background: #667eea; color: white; padding: 8px 20px; border-radius: 20px; font-size: 0.9em; font-weight: bold; display: inline-block; margin-bottom: 20px; }
+        .tier-card h3 { font-size: 1.8em; margin-bottom: 15px; color: #333; }
+        .commission { font-size: 3.5em; font-weight: bold; background: linear-gradient(135deg, #667eea, #764ba2); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 20px 0; }
+        .tier-desc { color: #666; margin-bottom: 30px; font-size: 1.1em; }
+        .features { text-align: left; margin-top: 30px; }
+        .features li { margin: 15px 0; padding-left: 30px; position: relative; color: #555; }
+        .features li:before { content: "✓"; position: absolute; left: 0; color: #667eea; font-weight: bold; font-size: 1.3em; }
+        
+        .how-it-works { background: #f8f9fa; padding: 80px 20px; }
+        .how-it-works h2 { text-align: center; font-size: 2.5em; margin-bottom: 60px; color: #333; }
+        .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 40px; max-width: 1000px; margin: 0 auto; }
+        .step { text-align: center; }
+        .step-number { width: 80px; height: 80px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2em; font-weight: bold; margin: 0 auto 20px; }
+        .step h3 { margin-bottom: 15px; color: #333; }
+        .step p { color: #666; }
+        
+        .cta-section { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 80px 20px; text-align: center; }
+        .cta-section h2 { font-size: 2.5em; margin-bottom: 20px; }
+        .cta-section p { font-size: 1.3em; margin-bottom: 40px; }
+        .cta-white { background: white; color: #667eea; padding: 18px 50px; border-radius: 50px; text-decoration: none; font-weight: bold; font-size: 1.2em; display: inline-block; }
+        
+        .faq { padding: 80px 20px; max-width: 800px; margin: 0 auto; }
+        .faq h2 { text-align: center; font-size: 2.5em; margin-bottom: 50px; color: #333; }
+        .faq-item { margin-bottom: 30px; border-bottom: 1px solid #e0e0e0; padding-bottom: 20px; }
+        .faq-item h3 { color: #667eea; margin-bottom: 10px; }
+        .faq-item p { color: #666; }
+    </style>
+</head>
+<body>
+    <div class="hero">
+        <h1>💰 Refer & Earn</h1>
+        <p>Share Atlanticfrewaycard and earn up to 50% recurring commissions</p>
+        <a href="#join" class="cta-btn">Start Earning Today</a>
+        <div style="margin-top: 20px; display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+            <a href="/" style="padding: 10px 20px; background: rgba(255,255,255,0.2); color: white; text-decoration: none; border-radius: 6px; border: 1px solid white;">← Home</a>
+            <a href="/partner-dashboard.html" style="padding: 10px 20px; background: rgba(255,255,255,0.2); color: white; text-decoration: none; border-radius: 6px; border: 1px solid white;">Partner Dashboard →</a>
+        </div>
+    </div>
+
+    <div class="stats">
+        <div class="stats-grid">
+            <div class="stat-item">
+                <h2>50%</h2>
+                <p>Max Commission</p>
+            </div>
+            <div class="stat-item">
+                <h2>$1.89M</h2>
+                <p>Year 1 Potential</p>
+            </div>
+            <div class="stat-item">
+                <h2>30 Days</h2>
+                <p>Cookie Duration</p>
+            </div>
+            <div class="stat-item">
+                <h2>Lifetime</h2>
+                <p>Recurring Payouts</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="tiers">
+        <h2>Choose Your Referral Tier</h2>
+        <div class="tier-grid">
+            <div class="tier-card">
+                <div class="tier-badge">TIER 1</div>
+                <h3>🎯 Individual Affiliate</h3>
+                <div class="commission">10%</div>
+                <p class="tier-desc">Perfect for influencers, bloggers, and content creators</p>
+                <ul class="features">
+                    <li>Unique referral link</li>
+                    <li>Real-time dashboard</li>
+                    <li>$50 signup bonus per referral</li>
+                    <li>Monthly payouts ($50 min)</li>
+                    <li>Marketing materials</li>
+                    <li>Email support</li>
+                </ul>
+            </div>
+
+            <div class="tier-card">
+                <div class="tier-badge">TIER 2</div>
+                <h3>🏢 Business Reseller</h3>
+                <div class="commission">25%</div>
+                <p class="tier-desc">For agencies, consultants, and business partners</p>
+                <ul class="features">
+                    <li>Higher commission rate</li>
+                    <li>Co-branded materials</li>
+                    <li>Lead management tools</li>
+                    <li>Volume bonuses (+5-10%)</li>
+                    <li>Dedicated support</li>
+                    <li>Partner portal access</li>
+                </ul>
+            </div>
+
+            <div class="tier-card">
+                <div class="tier-badge">TIER 3</div>
+                <h3>🏦 White-Label Partner</h3>
+                <div class="commission">50%</div>
+                <p class="tier-desc">For banks, fintechs, and enterprise partners</p>
+                <ul class="features">
+                    <li>Full branding control</li>
+                    <li>Custom card designs</li>
+                    <li>Dedicated API access</li>
+                    <li>Custom domain support</li>
+                    <li>Enterprise support</li>
+                    <li>Revenue share model</li>
+                </ul>
+            </div>
+
+            <div class="tier-card">
+                <div class="tier-badge">TIER 4</div>
+                <h3>🔌 Technology Partner</h3>
+                <div class="commission">15%</div>
+                <p class="tier-desc">For software integrations and platforms</p>
+                <ul class="features">
+                    <li>API integration</li>
+                    <li>Webhook support</li>
+                    <li>Co-marketing budget</li>
+                    <li>Technical documentation</li>
+                    <li>Developer support</li>
+                    <li>Strategic partnership</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="how-it-works">
+        <h2>How It Works</h2>
+        <div class="steps">
+            <div class="step">
+                <div class="step-number">1</div>
+                <h3>Sign Up</h3>
+                <p>Create your free referral account and get your unique link instantly</p>
+            </div>
+            <div class="step">
+                <div class="step-number">2</div>
+                <h3>Share</h3>
+                <p>Share your link on social media, blog, email, or anywhere you want</p>
+            </div>
+            <div class="step">
+                <div class="step-number">3</div>
+                <h3>Earn</h3>
+                <p>Get paid recurring commissions every time someone signs up and uses the platform</p>
+            </div>
+            <div class="step">
+                <div class="step-number">4</div>
+                <h3>Track</h3>
+                <p>Monitor your earnings, conversions, and performance in real-time dashboard</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="faq">
+        <h2>Frequently Asked Questions</h2>
+        
+        <div class="faq-item">
+            <h3>How do I get paid?</h3>
+            <p>Commissions are paid monthly via bank transfer or PayPal. Minimum payout is $50 for Tier 1, $100 for Tier 2, and $1,000 for Tier 3.</p>
+        </div>
+
+        <div class="faq-item">
+            <h3>How long do cookies last?</h3>
+            <p>Our referral cookies last 30 days. If someone clicks your link and signs up within 30 days, you get credit.</p>
+        </div>
+
+        <div class="faq-item">
+            <h3>Can I refer both business and personal users?</h3>
+            <p>Yes! You earn commissions on both business subscriptions and personal card usage.</p>
+        </div>
+
+        <div class="faq-item">
+            <h3>Is there a limit to how much I can earn?</h3>
+            <p>No limits! The more you refer, the more you earn. Top affiliates earn $10K+ per month.</p>
+        </div>
+
+        <div class="faq-item">
+            <h3>How do I upgrade to a higher tier?</h3>
+            <p>Contact our partner team once you reach 10+ referrals for Tier 2, or apply directly for Tier 3/4 partnerships.</p>
+        </div>
+
+        <div class="faq-item">
+            <h3>Do I need to be a customer to refer?</h3>
+            <p>No, but we recommend trying the platform to better promote it. Customers often convert better!</p>
+        </div>
+    </div>
+
+    <div class="cta-section" id="join">
+        <h2>Ready to Start Earning?</h2>
+        <p>Join thousands of partners earning recurring income with Atlanticfrewaycard</p>
+        <a href="/business/register.html?ref=partner" class="cta-white">Create Free Account</a>
+        <p style="margin-top: 20px; opacity: 0.9;">Already have an account? <a href="/business/login.html" style="color: white; text-decoration: underline;">Login here</a></p>
+    </div>
+
+    <script>
+        // Track referral parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        const refCode = urlParams.get('ref');
+        if (refCode) {
+            localStorage.setItem('referral_code', refCode);
+            document.cookie = `ref=${refCode}; max-age=2592000; path=/`; // 30 days
+        }
+    </script>
+</body>
+</html>

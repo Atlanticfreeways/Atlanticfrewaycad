@@ -80,12 +80,15 @@ LOG_LEVEL=info
 
 ### Access Points
 - **Landing Page**: http://localhost:3000
+- **Referral Program**: http://localhost:3000/referral.html
+- **Partner Dashboard**: http://localhost:3000/partner-dashboard.html
 - **Admin Dashboard**: http://localhost:3000/admin/waitlist.html
 - **API Base**: http://localhost:3000/api/v1
 - **API Docs**: http://localhost:3000/api-docs
 - **Business APIs**: http://localhost:3000/api/v1/business
 - **Personal APIs**: http://localhost:3000/api/v1/personal
 - **Shared APIs**: http://localhost:3000/api/v1/shared
+- **Partner APIs**: http://localhost:3000/api/v1/partners
 - **Waitlist API**: http://localhost:3000/api/waitlist
 
 ## 📊 API Endpoints
@@ -124,9 +127,17 @@ GET  /api/waitlist                    - Get all waitlist entries (admin)
 GET  /api/waitlist/stats              - Get waitlist statistics
 ```
 
+### Partner APIs (Affiliate Program)
+```
+POST /api/partners/register           - Register as partner
+GET  /api/partners/profile            - Get partner profile
+PUT  /api/partners/profile            - Update partner profile
+POST /api/partners/api-key            - Generate API key
+```
+
 ## 🔧 Development Status
 
-### ✅ Completed (46.25%)
+### ✅ Completed (52%)
 - [x] Service architecture foundation
 - [x] Route structure for all modules
 - [x] Security hardening (CSRF, XSS, SSRF, rate limiting)
@@ -136,6 +147,9 @@ GET  /api/waitlist/stats              - Get waitlist statistics
 - [x] Security audit (8.5/10 rating)
 - [x] Error handling with asyncHandler pattern
 - [x] Logging and monitoring
+- [x] Partner/Affiliate program (Phase 1)
+- [x] Referral landing page
+- [x] Partner dashboard UI
 
 ### 🔄 In Progress
 - [ ] Database adapters (PostgreSQL + MongoDB)
@@ -156,11 +170,61 @@ GET  /api/waitlist/stats              - Get waitlist statistics
 ### Revenue Streams
 - **Business**: SaaS subscriptions ($50-500/month) + transaction fees (0.5%)
 - **Personal**: Interchange fees (1-2%) + crypto conversion fees (1-3%)
+- **Partners**: Affiliate commissions (10-50% revenue share)
 - **Cross-selling**: Business employees → personal accounts
+
+### Partner/Affiliate Program
+Multi-tier referral system enabling partners to earn recurring commissions by promoting the platform.
+
+**Tier 1 - Individual Affiliates** (10% commission)
+- Target: Influencers, bloggers, content creators
+- Features: Unique referral links, real-time dashboard, $50 signup bonus
+- Payout: Monthly ($50 minimum)
+
+**Tier 2 - Business Resellers** (25% commission)
+- Target: Agencies, consultants, accounting firms
+- Features: Co-branded materials, lead management, volume bonuses (+5-10%)
+- Payout: Monthly ($100 minimum)
+
+**Tier 3 - White-Label Partners** (50% revenue share)
+- Target: Banks, fintechs, crypto exchanges
+- Features: Full branding, custom cards, dedicated API, custom domain
+- Pricing: $5K-15K/month OR $50K-100K setup + 50% ongoing
+
+**Tier 4 - Technology Partners** (15% commission)
+- Target: Software integrations (QuickBooks, Xero, etc.)
+- Features: API access, webhooks, co-marketing budget
+- Model: Strategic partnerships with revenue share
+
+**Year 1 Projection**: $1.89M partner-driven revenue (123+ partners)
 
 ### Target Markets
 - **Business**: Companies needing expense management
 - **Personal**: Crypto users, digital nomads, privacy-focused individuals
+- **Partners**: Affiliates, resellers, white-label partners, technology integrators
+
+## 🎁 Referral Program
+
+### How It Works
+1. **Sign Up**: Create free account, get unique referral link instantly
+2. **Share**: Promote via social media, blog, email, or website
+3. **Earn**: Get paid recurring commissions for every signup
+4. **Track**: Monitor performance in real-time dashboard
+
+### Features
+- 30-day cookie tracking
+- Lifetime recurring commissions
+- Real-time analytics dashboard
+- Social sharing tools (Twitter, LinkedIn, Facebook)
+- Marketing materials provided
+- Monthly automated payouts
+
+### Access
+- **Landing Page**: http://localhost:3000/referral.html
+- **Partner Dashboard**: http://localhost:3000/partner-dashboard.html
+- **API**: POST /api/v1/partners/register
+
+---
 
 ## 🔒 Security Features
 
