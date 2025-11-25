@@ -19,7 +19,8 @@ class DatabaseManager {
 
       // Initialize PostgreSQL
       this.postgres = new PostgreSQLAdapter(this.config);
-      logger.info('PostgreSQL adapter created');
+      await this.postgres.testConnection();
+      logger.info('PostgreSQL connected');
 
       // Initialize MongoDB
       this.mongodb = new MongoDBAdapter(this.config);

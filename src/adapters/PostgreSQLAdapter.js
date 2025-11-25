@@ -74,6 +74,17 @@ class PostgreSQLAdapter {
     }
   }
 
+  async testConnection() {
+    try {
+      const result = await this.pool.query('SELECT NOW()');
+      logger.info('PostgreSQL connection test successful');
+      return result;
+    } catch (error) {
+      logger.error('PostgreSQL connection test failed:', error);
+      throw error;
+    }
+  }
+
   async getPoolStats() {
     return {
       totalConnections: this.pool.totalCount,
