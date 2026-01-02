@@ -14,7 +14,21 @@ frontend/out/
 logs/*.log
 register.json
 
-# Task tracking and documentation
+# ============================================
+# TASK FILES & DOCUMENTATION (Development Only)
+# ============================================
+# Implementation tracking and planning
+IMPLEMENTATION_TASKS.md
+DEVELOPMENT_ROADMAP.md
+PROJECT_OVERVIEW.md
+PROJECT_SUMMARY.md
+TECHNICAL_ARCHITECTURE.md
+DOCUMENTATION_INDEX.md
+QUICK_START.md
+ASSESSMENT_FINDINGS.md
+WEEK1_CHECKLIST.md
+
+# Task tracking files
 ALL_TASKS.md
 BEST_PRACTICES_GUIDE.md
 IMPLEMENTATION_CHECKLIST.md
@@ -23,39 +37,65 @@ TASK_*.md
 NEXT_TASK.md
 CURRENT_STATUS.md
 .github/IMPLEMENTATION_CHECKLIST.md
+TASK_FILES_INDEX.md
+TASK_FILES_README.md
+TASK_FILES_QUICK_REFERENCE.md
+CLEANUP_SUMMARY.md
+COMPLETION_REPORT.md
 
-# Marqeta API references and integration
+# Temporary/scratch files
+Untitled-*.md
+fix-startup.sh
+
+# ============================================
+# MARQETA API REFERENCES (Sensitive)
+# ============================================
+About Atlanticfreewaycard api/
 about marqeta api/
 marqeta.txt
 *PROJ*.md
 marqeta-*.json
 marqeta-config.*
 
-# Database migrations (contain schema details)
+# ============================================
+# DATABASE FILES (Schema & Test Data)
+# ============================================
 database/migrations/*.sql
 migrations/*.sql
 schema.sql
 test_data.sql
 
-# Deployment and production configs
+# ============================================
+# DEPLOYMENT & PRODUCTION CONFIGS
+# ============================================
 Procfile
 DEPLOYMENT.md
 .env.production
 .env.staging
 netlify.toml
+railway.json
+nixpacks.toml
 
-# Audit and security reports
+# ============================================
+# AUDIT & SECURITY REPORTS
+# ============================================
 audit-report.json
 SECURITY_AUDIT.md
 SECURITY_FIXES*.md
 
-# Test fixtures with potential sensitive data
+# ============================================
+# TEST FIXTURES & SENSITIVE DATA
+# ============================================
 tests/fixtures/*.json
 tests/integration/marqeta/
 
-# IDE and editor files
+# ============================================
+# IDE & EDITOR FILES
+# ============================================
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
+.kiro/
+~/.kiro/
