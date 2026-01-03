@@ -40,44 +40,26 @@ graph TD
 
 ```mermaid
 graph TD
-    classDef primary fill:#23272a,stroke:#7289da,stroke-width:2px,color:#fff;
-    classDef storage fill:#2c2f33,stroke:#99aab5,stroke-width:1px,stroke-dasharray: 5 5,color:#fff;
-    classDef security fill:#43b581,stroke:#fff,stroke-width:2px,color:#fff;
-    classDef external fill:#f04747,stroke:#fff,stroke-width:1px,color:#fff;
-    classDef rabbit fill:#ff69b4,stroke:#fff,stroke-width:3px,color:#fff;
-
-    User((🐰 Web/Mobile Clients)) -->|mTLS + Encrypted| Nginx[🛡️ Nginx Edge Gateway]
-    subgraph Ingress_Shield ["🐰 Rabbit Head: Ingress & Security"]
-        Nginx --> WAF{ModSecurity WAF}
-        WAF -->|Clean Traffic| LB[Load Balancer]
-        WAF -.->|Threat Logs| LogLake[(Security Data Lake)]
-    end
-
-    LB -->|Auth/Business| NodeMonolith[Node.js Monolith API]
-    LB -->|JIT Funding| GoJIT[Go JIT Service]
-
-    subgraph Decision_Engine ["🐰 Rabbit Body: Real-Time Intelligence"]
-        GoJIT <-->|gRPC| FraudML["🧠 ML Fraud Engine"]
-        FraudML <-->|Velocity| Redis[(Redis Hot Cache)]
-        GoJIT -->|Events| Rabbit[RabbitMQ Event Bus]
-    end
-
-    subgraph Data_Layer ["🐰 Rabbit Legs: Data Foundation"]
-        NodeMonolith --> Mongo[(MongoDB Audit)]
-        NodeMonolith --> Postgres[(PostgreSQL Ledger)]
-        GoJIT --> Postgres
-        GoJIT --> Redis
-    end
-
-    GoJIT -->|Authorized| Marqeta[Marqeta API]
-    Rabbit -->|Async| Notify[Notification Service]
-    Rabbit -->|Webhooks| BankLegacy[Legacy Banking Core]
-
-    class NodeMonolith,GoJIT primary;
-    class Postgres,Mongo,Redis,LogLake storage;
-    class WAF,FraudML security;
-    class Marqeta,BankLegacy external;
-    class Ingress_Shield,Decision_Engine,Data_Layer rabbit;
+    Client[Web/Mobile Clients] --> Nginx[Nginx Edge Gateway]
+    Nginx --> WAF{ModSecurity WAF}
+    WAF --> LB[Nginx Load Balancer]
+    WAF --> LogLake[(Security Data Lake)]
+    
+    LB --> NodeAPI[Node.js Monolith API]
+    LB --> GoService[Go JIT Service]
+    
+    GoService --> FraudML[ML Fraud Engine]
+    FraudML --> Redis[(Redis Cache)]
+    GoService --"Events"--> RabbitMQ{RabbitMQ}
+    
+    NodeAPI --> PG[(PostgreSQL)]
+    NodeAPI --> Mongo[(MongoDB)]
+    GoService --> Redis
+    GoService --> PG
+    
+    GoService --> Marqeta[Marqeta API]
+    RabbitMQ --> Notify[Notification Service]
+    RabbitMQ --> BankLegacy[Legacy Banking Core]
 ```
 
 **The Fortress Architecture** represents three "legs":
