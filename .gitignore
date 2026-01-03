@@ -14,6 +14,7 @@ frontend/.next/
 frontend/out/
 logs/*.log
 register.json
+jit-funding-service/jit-funding-service
 
 # ============================================
 # TASK FILES & DOCUMENTATION (Development Only)
@@ -28,6 +29,9 @@ register.json
 # QUICK_START.md
 # ASSESSMENT_FINDINGS.md
 # WEEK1_CHECKLIST.md
+EXECUTION_SUMMARY.md
+BUSINESS_ROI_ANALYSIS.md
+SCALING_STRATEGY.md
 
 # Task tracking files
 ALL_TASKS.md

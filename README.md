@@ -103,6 +103,8 @@ go run main.go
 - `jit-funding-service/`: Go Microservice code
 - `k8s/`: Kubernetes deployment manifests
 - `docker-compose.yml`: Container orchestration
+- `BUSINESS_ROI_ANALYSIS.md`: Financial projections and milestones
+- `SCALING_STRATEGY.md`: Technical and operational scaling roadmap
 
 ## 🤝 Contributing
 
