@@ -27,6 +27,12 @@ class AuthorizationError extends AppError {
   }
 }
 
+class ForbiddenError extends AppError {
+  constructor(message = 'Forbidden') {
+    super(message, 403, 'FORBIDDEN_ERROR');
+  }
+}
+
 class NotFoundError extends AppError {
   constructor(resource = 'Resource') {
     super(`${resource} not found`, 404, 'NOT_FOUND');
@@ -44,6 +50,7 @@ module.exports = {
   ValidationError,
   AuthenticationError,
   AuthorizationError,
+  ForbiddenError,
   NotFoundError,
   ExternalServiceError
 };

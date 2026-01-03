@@ -10,35 +10,56 @@ class PersonalService {
     this.transactionRepo = repositories.transaction;
   }
 
-  async createPersonalAccount(userData) {
+  async createPersonalAccount(userId, accountData) {
+    const user = await this.userRepo.findById(userId);
+    if (!user) throw new NotFoundError('User');
+
     const marqetaUser = await userAdapter.createUser({
-      firstName: userData.firstName,
-      lastName: userData.lastName,
-      email: userData.email,
-      phone: userData.phone
+      firstName: user.first_name,
+      lastName: user.last_name,
+      email: user.email,
+      phone: user.phone
     });
 
-    const passwordHash = await require('../services/auth/PasswordService').hash(userData.password);
-
-    const user = await this.userRepo.create({
-      email: userData.email,
-      passwordHash,
-      firstName: userData.firstName,
-      lastName: userData.lastName,
-      phone: userData.phone,
-      accountType: 'personal',
-      role: 'personal',
-      marqetaUserToken: marqetaUser.token
+    await this.userRepo.update(userId, {
+      marqeta_user_token: marqetaUser.token,
+      account_type: 'personal'
     });
 
-    await this.walletRepo.create(user.id);
+    const wallet = await this.walletRepo.create(userId);
+    return { user, wallet };
+  }
 
-    return user;
+  async submitKYCVerification(userId, kycData) {
+    const user = await this.userRepo.findById(userId);
+    if (!user) throw new NotFoundError('User');
+
+    const query = `
+      INSERT INTO kyc_verifications (user_id, tier, documents, status)
+      VALUES ($1, $2, $3, 'pending')
+      RETURNING *
+    `;
+    const result = await this.userRepo.query(query, [
+      userId,
+      kycData.tier || 'tier_1',
+      JSON.stringify(kycData.documents || {})
+    ]);
+    return result.rows[0];
+  }
+
+  async getKYCStatus(userId) {
+    const query = 'SELECT * FROM kyc_verifications WHERE user_id = $1 ORDER BY created_at DESC LIMIT 1';
+    const result = await this.userRepo.query(query, [userId]);
+    return result.rows[0] || { status: 'not_started' };
   }
 
   async issuePersonalCard(userId, cardConfig = {}) {
     const user = await this.userRepo.findById(userId);
     if (!user) throw new NotFoundError('User');
+
+    if (!user.marqeta_user_token) {
+      throw new Error('User not registered with Marqeta');
+    }
 
     const cardProductToken = process.env.MARQETA_PERSONAL_CARD_PRODUCT || 'personal_card_product';
 
@@ -61,20 +82,6 @@ class PersonalService {
     });
   }
 
-  async getCardDetails(cardId, userId) {
-    const card = await this.cardRepo.findById(cardId);
-    if (!card || card.user_id !== userId) throw new NotFoundError('Card');
-
-    const panData = await cardAdapter.showPAN(card.marqeta_card_token);
-
-    return {
-      ...card,
-      pan: panData.pan,
-      cvv: panData.cvv_number,
-      expiration: panData.expiration
-    };
-  }
-
   async freezeCard(cardId, userId) {
     const card = await this.cardRepo.findById(cardId);
     if (!card || card.user_id !== userId) throw new NotFoundError('Card');
@@ -95,11 +102,13 @@ class PersonalService {
     return await this.walletRepo.findByUser(userId);
   }
 
-  async addFunds(userId, amount, _source = 'bank_transfer') {
+  async addFunds(userId, amount, source = 'bank_transfer') {
     const wallet = await this.walletRepo.findByUser(userId);
     if (!wallet) throw new NotFoundError('Wallet');
 
-    return await this.walletRepo.addFunds(userId, amount);
+    const updated = await this.walletRepo.addFunds(userId, amount);
+    await this.walletRepo.recordTransaction(userId, amount, 'deposit', source);
+    return updated;
   }
 
   async getTransactions(userId, limit = 50) {

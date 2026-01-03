@@ -1,6 +1,6 @@
 'use client';
-import { useState } from 'react';
-import { getApiUrl } from '../../utils/urlValidator';
+import React, { useState } from 'react';
+import { getApiUrl } from '../../../utils/urlValidator';
 
 export default function KYCUpload() {
   const [tier, setTier] = useState('ace');
@@ -38,8 +38,8 @@ export default function KYCUpload() {
           </select>
           {tier !== 'atlantic' && (
             <>
-              <FileInput label="Photo ID" onChange={f => setFiles({...files, photoId: f})} />
-              <FileInput label="Proof of Address" onChange={f => setFiles({...files, address: f})} />
+              <FileInput label="Photo ID" onChange={(f: File) => setFiles({ ...files, photoId: f })} />
+              <FileInput label="Proof of Address" onChange={(f: File) => setFiles({ ...files, address: f })} />
             </>
           )}
           <button type="submit" disabled={uploading} className="w-full bg-blue-600 text-white py-3 rounded-lg">

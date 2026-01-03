@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { getApiUrl } from '../../utils/urlValidator';
+import { getApiUrl } from '../../../utils/urlValidator';
 
 export default function AdminKYC() {
   const [verifications, setVerifications] = useState<any[]>([]);
@@ -45,7 +45,7 @@ export default function AdminKYC() {
                   </span>
                 </td>
                 <td className="p-4">
-                  <button onClick={() => handleApprove(v.id)} 
+                  <button onClick={() => handleApprove(v.id)}
                     className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
                     Approve
                   </button>

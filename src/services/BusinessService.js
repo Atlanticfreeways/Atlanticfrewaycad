@@ -83,6 +83,37 @@ class BusinessService {
     return card;
   }
 
+  async updateCardStatus(cardId, status) {
+    const card = await this.cardRepo.findById(cardId);
+    if (!card) throw new NotFoundError('Card');
+
+    await cardAdapter.updateCardStatus(card.marqeta_card_token, status);
+    return await this.cardRepo.update(cardId, { status });
+  }
+
+  async getCompanyStats(companyId) {
+    return await this.companyRepo.getStats(companyId);
+  }
+
+  async getSpendingAnalytics(companyId, filters = {}) {
+    const days = filters.days || 30;
+    
+    const byMerchant = await this.transactionRepo.getSpendingByMerchant(companyId, days);
+    const byEmployee = await this.transactionRepo.getSpendingByEmployee(companyId, days);
+    
+    const totalSpending = byMerchant.reduce((sum, m) => sum + parseFloat(m.total_amount || 0), 0);
+    const totalTransactions = byMerchant.reduce((sum, m) => sum + m.transaction_count, 0);
+
+    return {
+      period: `Last ${days} days`,
+      totalSpending,
+      totalTransactions,
+      averageTransaction: totalTransactions > 0 ? totalSpending / totalTransactions : 0,
+      byMerchant,
+      byEmployee
+    };
+  }
+
   async getExpenseReport(companyId, filters = {}) {
     const employees = await this.userRepo.findByCompany(companyId);
     const employeeIds = employees.map(e => e.id);

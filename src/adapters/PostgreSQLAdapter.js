@@ -1,8 +1,10 @@
 const { Pool } = require('pg');
 const logger = require('../utils/logger');
+const BaseAdapter = require('./BaseAdapter');
 
-class PostgreSQLAdapter {
+class PostgreSQLAdapter extends BaseAdapter {
   constructor(config) {
+    super(config);
     this.pool = new Pool({
       connectionString: config.DATABASE_URL,
       max: 20, // Maximum connections
@@ -21,6 +23,7 @@ class PostgreSQLAdapter {
 
     this.pool.on('connect', () => {
       logger.debug('New database connection established');
+      this.isConnected = true;
     });
 
     this.pool.on('remove', () => {
@@ -29,6 +32,7 @@ class PostgreSQLAdapter {
   }
 
   async executeQuery(query, params = []) {
+    this.validateConnection();
     const start = Date.now();
     const client = await this.pool.connect();
 
@@ -37,27 +41,21 @@ class PostgreSQLAdapter {
       const duration = Date.now() - start;
 
       // Log slow queries for profiling
-      if (duration > 100) {
-        logger.warn('Slow query detected', {
-          duration,
-          query: query.substring(0, 100),
-          params: params.length
-        });
-      }
+      this.logSlowOperation('executeQuery', duration, 100, {
+        query: query.substring(0, 100),
+        params: params.length
+      });
 
       return result;
     } catch (error) {
-      logger.error('Query execution error:', {
-        error: error.message,
-        query: query.substring(0, 100)
-      });
-      throw error;
+      this.handleQueryError(error, query, params);
     } finally {
       client.release();
     }
   }
 
   async executeTransaction(callback) {
+    this.validateConnection();
     const client = await this.pool.connect();
 
     try {
@@ -66,23 +64,32 @@ class PostgreSQLAdapter {
       await client.query('COMMIT');
       return result;
     } catch (error) {
-      await client.query('ROLLBACK');
-      logger.error('Transaction error:', error);
-      throw error;
+      try {
+        await client.query('ROLLBACK');
+      } catch (rollbackError) {
+        logger.error('Rollback error:', rollbackError);
+      }
+      this.handleTransactionError(error, 'Transaction execution failed');
     } finally {
       client.release();
     }
   }
 
-  async testConnection() {
+  async healthCheck() {
     try {
       const result = await this.pool.query('SELECT NOW()');
-      logger.info('PostgreSQL connection test successful');
-      return result;
+      logger.info('PostgreSQL health check successful');
+      this.isConnected = true;
+      return { healthy: true, adapter: 'PostgreSQL' };
     } catch (error) {
-      logger.error('PostgreSQL connection test failed:', error);
-      throw error;
+      logger.error('PostgreSQL health check failed:', error);
+      this.isConnected = false;
+      this.handleConnectionError(error, 'Health check failed');
     }
+  }
+
+  async testConnection() {
+    return this.healthCheck();
   }
 
   async getPoolStats() {
@@ -94,8 +101,14 @@ class PostgreSQLAdapter {
   }
 
   async close() {
-    await this.pool.end();
-    logger.info('PostgreSQL connection pool closed');
+    try {
+      await this.pool.end();
+      this.isConnected = false;
+      logger.info('PostgreSQL connection pool closed');
+    } catch (error) {
+      logger.error('Error closing PostgreSQL connection pool:', error);
+      throw error;
+    }
   }
 }
 

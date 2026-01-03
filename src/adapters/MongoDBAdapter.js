@@ -1,9 +1,10 @@
 const { MongoClient } = require('mongodb');
 const logger = require('../utils/logger');
+const BaseAdapter = require('./BaseAdapter');
 
-class MongoDBAdapter {
+class MongoDBAdapter extends BaseAdapter {
   constructor(config) {
-    this.config = config;
+    super(config);
     this.client = null;
     this.db = null;
   }
@@ -23,22 +24,25 @@ class MongoDBAdapter {
 
       await this.client.connect();
       this.db = this.client.db(this.config.MONGODB_DB || 'atlanticfrewaycard');
+      this.isConnected = true;
 
       logger.info('MongoDB connection established');
 
       // Monitor connection events
       this.client.on('error', (err) => {
         logger.error('MongoDB connection error:', err);
+        this.isConnected = false;
       });
 
       return this.db;
     } catch (error) {
-      logger.error('Failed to connect to MongoDB:', error);
-      throw error;
+      this.isConnected = false;
+      this.handleConnectionError(error, 'MongoDB connection failed');
     }
   }
 
   async executeQuery(collection, operation, params = {}) {
+    this.validateConnection();
     const start = Date.now();
 
     try {
@@ -69,23 +73,14 @@ class MongoDBAdapter {
       }
 
       const duration = Date.now() - start;
-
-      if (duration > 100) {
-        logger.warn('Slow MongoDB query detected', {
-          duration,
-          collection,
-          operation
-        });
-      }
-
-      return result;
-    } catch (error) {
-      logger.error('MongoDB query error:', {
-        error: error.message,
+      this.logSlowOperation(`${operation} on ${collection}`, duration, 100, {
         collection,
         operation
       });
-      throw error;
+
+      return result;
+    } catch (error) {
+      this.handleQueryError(error, `${operation} on ${collection}`, []);
     }
   }
 
@@ -115,10 +110,29 @@ class MongoDBAdapter {
     }
   }
 
+  async healthCheck() {
+    try {
+      await this.db.admin().ping();
+      logger.info('MongoDB health check successful');
+      this.isConnected = true;
+      return { healthy: true, adapter: 'MongoDB' };
+    } catch (error) {
+      logger.error('MongoDB health check failed:', error);
+      this.isConnected = false;
+      this.handleConnectionError(error, 'Health check failed');
+    }
+  }
+
   async close() {
-    if (this.client) {
-      await this.client.close();
-      logger.info('MongoDB connection closed');
+    try {
+      if (this.client) {
+        await this.client.close();
+        this.isConnected = false;
+        logger.info('MongoDB connection closed');
+      }
+    } catch (error) {
+      logger.error('Error closing MongoDB connection:', error);
+      throw error;
     }
   }
 }

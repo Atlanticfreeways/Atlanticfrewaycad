@@ -1,6 +1,7 @@
 node_modules/
 .env
 .env.local
+.env.required
 .env.*.local
 .DS_Store
 coverage/
@@ -18,15 +19,15 @@ register.json
 # TASK FILES & DOCUMENTATION (Development Only)
 # ============================================
 # Implementation tracking and planning
-IMPLEMENTATION_TASKS.md
-DEVELOPMENT_ROADMAP.md
-PROJECT_OVERVIEW.md
-PROJECT_SUMMARY.md
-TECHNICAL_ARCHITECTURE.md
-DOCUMENTATION_INDEX.md
-QUICK_START.md
-ASSESSMENT_FINDINGS.md
-WEEK1_CHECKLIST.md
+# IMPLEMENTATION_TASKS.md
+# DEVELOPMENT_ROADMAP.md
+# PROJECT_OVERVIEW.md
+# PROJECT_SUMMARY.md
+# TECHNICAL_ARCHITECTURE.md
+# DOCUMENTATION_INDEX.md
+# QUICK_START.md
+# ASSESSMENT_FINDINGS.md
+# WEEK1_CHECKLIST.md
 
 # Task tracking files
 ALL_TASKS.md
