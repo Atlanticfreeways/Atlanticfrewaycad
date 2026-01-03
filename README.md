@@ -1,4 +1,4 @@
-# 🏦 Atlanticfrewaycard Platform (V2)
+# Atlanticfrewaycard Platform (V2)
 
 **Unified card platform combining business expense management and personal virtual cards.**
 *Enterprise-ready with Event-Driven Architecture and Microservices.*
@@ -36,7 +36,7 @@ graph TD
     GoService --> Marqeta[Marqeta API]
 ```
 
-### Phase 2: The Fortress 🐰 (Production-Ready Upgrade)
+### Phase 2: The Fortress (Production-Ready Upgrade)
 
 ```mermaid
 graph TD
@@ -86,50 +86,6 @@ See [ARCHITECTURE_FORTRESS_BLUEPRINT.md](./ARCHITECTURE_FORTRESS_BLUEPRINT.md) f
 ### 🐳 Docker Deployment (Recommended)
 The entire platform (App, Go Service, DBs) can be launched with a single command:
 
-```bash
-# 1. Clone repository
-git clone <repository-url>
-
-# 2. Setup Env
-cp .env.required .env
-# (Edit .env with your keys)
-
-# 3. Launch
-docker-compose up -d --build
-```
-
-Access the services:
-- **Web App**: `http://localhost:80`
-- **Business Dashboard**: `http://localhost:80/business`
-- **JIT Service Health**: `http://localhost:8080/health`
-
-### 🔧 Local Development
-
-**Frontend:**
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-**JIT Service (Go):**
-```bash
-cd jit-funding-service
-go run main.go
-```
-
-## 🔧 Development Status
-
-###  Phase 1-5 (V1) Completed
-- Foundation, Core Services, Security, Compliance, and Basic Frontend.
-
-###  Roadmap V2 Completed
-- [x] **Event-Driven Architecture**: RabbitMQ implementation for decoupled transactions.
-- [x] **JIT Funding Microservice**: High-concurrency Go service for zero-latency authorizations.
-- [x] **Advanced Monitoring**: Sentry, Prometheus, and ELK integration.
-- [x] **Infrastructure**: Docker Compose & Kubernetes manifests (`k8s/`).
-- [x] **Dashboards**: Next.js Business and Personal dashboards.
-- [x] **Fortress Architecture**: Security-first design with ML fraud detection.
 
 ## 🤝 Contributing
 
