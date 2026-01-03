@@ -14,9 +14,9 @@ Atlanticfrewaycard has evolved into a robust, scalable platform leveraging moder
 - **Personal Module**: Individual virtual cards with crypto funding (Freeway Cards)
 - **JIT Funding Engine**: Real-time authorization processing (Go Microservice)
 
-## 🏗️ Architecture V2
+## 🏗️ Architecture Evolution
 
-The system now follows a hybrid microservices architecture:
+### Phase 1: Hybrid Monolith (Current Foundation)
 
 ```mermaid
 graph TD
@@ -36,11 +36,63 @@ graph TD
     GoService --> Marqeta[Marqeta API]
 ```
 
+### Phase 2: The Fortress 🐰 (Production-Ready Upgrade)
+
+```mermaid
+graph TD
+    classDef primary fill:#23272a,stroke:#7289da,stroke-width:2px,color:#fff;
+    classDef storage fill:#2c2f33,stroke:#99aab5,stroke-width:1px,stroke-dasharray: 5 5,color:#fff;
+    classDef security fill:#43b581,stroke:#fff,stroke-width:2px,color:#fff;
+    classDef external fill:#f04747,stroke:#fff,stroke-width:1px,color:#fff;
+    classDef rabbit fill:#ff69b4,stroke:#fff,stroke-width:3px,color:#fff;
+
+    User((🐰 Web/Mobile Clients)) -->|mTLS + Encrypted| Nginx[🛡️ Nginx Edge Gateway]
+    subgraph Ingress_Shield ["🐰 Rabbit Head: Ingress & Security"]
+        Nginx --> WAF{ModSecurity WAF}
+        WAF -->|Clean Traffic| LB[Load Balancer]
+        WAF -.->|Threat Logs| LogLake[(Security Data Lake)]
+    end
+
+    LB -->|Auth/Business| NodeMonolith[Node.js Monolith API]
+    LB -->|JIT Funding| GoJIT[Go JIT Service]
+
+    subgraph Decision_Engine ["🐰 Rabbit Body: Real-Time Intelligence"]
+        GoJIT <-->|gRPC| FraudML["🧠 ML Fraud Engine"]
+        FraudML <-->|Velocity| Redis[(Redis Hot Cache)]
+        GoJIT -->|Events| Rabbit[RabbitMQ Event Bus]
+    end
+
+    subgraph Data_Layer ["🐰 Rabbit Legs: Data Foundation"]
+        NodeMonolith --> Mongo[(MongoDB Audit)]
+        NodeMonolith --> Postgres[(PostgreSQL Ledger)]
+        GoJIT --> Postgres
+        GoJIT --> Redis
+    end
+
+    GoJIT -->|Authorized| Marqeta[Marqeta API]
+    Rabbit -->|Async| Notify[Notification Service]
+    Rabbit -->|Webhooks| BankLegacy[Legacy Banking Core]
+
+    class NodeMonolith,GoJIT primary;
+    class Postgres,Mongo,Redis,LogLake storage;
+    class WAF,FraudML security;
+    class Marqeta,BankLegacy external;
+    class Ingress_Shield,Decision_Engine,Data_Layer rabbit;
+```
+
+**The Fortress Architecture** represents three "legs":
+- 🐰 **Head**: Deep Security (Ingress Shield with WAF, mTLS, threat detection)
+- 🐰 **Body**: Intelligent Decisioning (ML Fraud Engine, Real-time scoring)
+- 🐰 **Legs**: Operational Scalability (Distributed data layer, event-driven async)
+
+See [ARCHITECTURE_FORTRESS_BLUEPRINT.md](./ARCHITECTURE_FORTRESS_BLUEPRINT.md) for detailed implementation guide.
+
 ### Components
-1.  **Core API (Node.js)**: Handles business logic, user management, and dashboards.
-2.  **JIT Funding Service (Go)**: High-performance microservice for processing card authorizations in <100ms.
-3.  **Message Broker (RabbitMQ)**: Decouples transaction processing from user-facing APIs.
-4.  **Security**: PCI-compliant encryption (AES-256) and tiered caching.
+1. **Core API (Node.js)**: Handles business logic, user management, and dashboards.
+2. **JIT Funding Service (Go)**: High-performance microservice for processing card authorizations in <100ms.
+3. **Message Broker (RabbitMQ)**: Decouples transaction processing from user-facing APIs.
+4. **Security**: PCI-compliant encryption (AES-256) and tiered caching.
+5. **ML Fraud Engine**: Real-time transaction scoring with behavioral biometrics and velocity checks.
 
 ## 🚀 Quick Start
 
@@ -95,6 +147,7 @@ go run main.go
 - [x] **Advanced Monitoring**: Sentry, Prometheus, and ELK integration.
 - [x] **Infrastructure**: Docker Compose & Kubernetes manifests (`k8s/`).
 - [x] **Dashboards**: Next.js Business and Personal dashboards.
+- [x] **Fortress Architecture**: Security-first design with ML fraud detection.
 
 ## 📁 Key Directories
 
@@ -103,6 +156,7 @@ go run main.go
 - `jit-funding-service/`: Go Microservice code
 - `k8s/`: Kubernetes deployment manifests
 - `docker-compose.yml`: Container orchestration
+- `ARCHITECTURE_FORTRESS_BLUEPRINT.md`: Detailed fortress architecture guide
 - `BUSINESS_ROI_ANALYSIS.md`: Financial projections and milestones
 - `SCALING_STRATEGY.md`: Technical and operational scaling roadmap
 

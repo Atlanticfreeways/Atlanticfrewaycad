@@ -1,0 +1,13 @@
+{
+  "enabled": true,
+  "name": "Auto Continue Spec",
+  "description": "Automatically prompts to proceed to the next task in the spec when the current task execution is complete",
+  "version": "1",
+  "when": {
+    "type": "agentEnd"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "The previous task is complete. Please proceed to the next task in the spec. Open .kiro/specs/atlanticfrewaycard-core/tasks.md and implement the next uncompleted task."
+  }
+}
