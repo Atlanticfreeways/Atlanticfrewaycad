@@ -8,6 +8,7 @@ frontend/node_modules/
 .env.*.local
 .env.production
 .env.staging
+.env.required
 
 # Build outputs
 dist/
@@ -30,15 +31,29 @@ register.json
 # Coverage
 coverage/
 
-# IDE
+# IDE & Editor
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
+.kiro/
 
 # Development folder (task tracking, logs, etc)
 .development/
+
+# Development documentation files
+PUSH_CHECKLIST.md
+REPOSITORY_STRUCTURE.md
+
+# Database files
+database/migrations/
+migrations/
+*.sql
+
+# Security & audit files
+audit-report.json
+security-audit.json
 
 # Sensitive API configs
 marqeta.txt
