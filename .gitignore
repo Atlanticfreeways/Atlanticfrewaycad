@@ -50,6 +50,9 @@ TASK_*.md
 *_CHECKLIST.md
 *_ROADMAP.md
 *_PLAN.md
+docs/FORTRESS_QUICK_REFERENCE.md
+docs/PROJECT_COMPLETE.md
+docs/STARTUP_GUIDE.md
 
 # Database files
 database/migrations/
