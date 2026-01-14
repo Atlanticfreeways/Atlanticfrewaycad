@@ -16,7 +16,27 @@ build/
 .next/
 frontend/.next/
 frontend/out/
+frontend/build/
+frontend/.turbo/
+.turbo/
 jit-funding-service/jit-funding-service
+
+# Next.js
+out/
+.vercel
+.netlify
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+frontend/next-env.d.ts
+
+# Package manager
+yarn.lock
+pnpm-lock.yaml
+.pnpm-debug.log*
+.yarn/
+.pnp.*
 
 # Logs & runtime files
 *.log
