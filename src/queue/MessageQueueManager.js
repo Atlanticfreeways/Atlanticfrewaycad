@@ -55,7 +55,7 @@ class MessageQueueManager {
   async publishMessage(exchange, routingKey, message, retries = 0) {
     try {
       if (!this.channel) throw new Error('Channel not connected');
-      
+
       const payload = JSON.stringify(message);
       this.channel.publish(
         exchange,
@@ -63,18 +63,18 @@ class MessageQueueManager {
         Buffer.from(payload),
         { persistent: true }
       );
-      
+
       logger.debug(`Message published to ${exchange}/${routingKey}`);
       return true;
     } catch (error) {
       logger.error(`Failed to publish message: ${error.message}`);
-      
+
       if (retries < this.maxRetries) {
         const delay = this.retryDelay * Math.pow(2, retries);
         await new Promise(resolve => setTimeout(resolve, delay));
         return this.publishMessage(exchange, routingKey, message, retries + 1);
       }
-      
+
       throw error;
     }
   }
@@ -82,10 +82,10 @@ class MessageQueueManager {
   async consumeMessage(queue, callback, retries = 0) {
     try {
       if (!this.channel) throw new Error('Channel not connected');
-      
+
       await this.channel.consume(queue, async (msg) => {
         if (!msg) return;
-        
+
         try {
           const content = JSON.parse(msg.content.toString());
           await callback(content);
@@ -95,17 +95,17 @@ class MessageQueueManager {
           this.channel.nack(msg, false, true); // Requeue on error
         }
       });
-      
+
       logger.info(`Consuming messages from ${queue}`);
     } catch (error) {
       logger.error(`Failed to consume from ${queue}: ${error.message}`);
-      
+
       if (retries < this.maxRetries) {
         const delay = this.retryDelay * Math.pow(2, retries);
         await new Promise(resolve => setTimeout(resolve, delay));
         return this.consumeMessage(queue, callback, retries + 1);
       }
-      
+
       throw error;
     }
   }
@@ -127,7 +127,7 @@ class MessageQueueManager {
           });
           throw error;
         }
-        
+
         const delay = this.retryDelay * Math.pow(2, attempt);
         logger.warn(`Publish attempt ${attempt + 1} failed, retrying in ${delay}ms`);
         await new Promise(resolve => setTimeout(resolve, delay));
@@ -143,6 +143,38 @@ class MessageQueueManager {
     } catch (error) {
       logger.error('Error closing RabbitMQ connection:', error.message);
     }
+  }
+
+  /**
+   * RPC Style Request
+   * Publishes a message and waits for a response on a callback queue.
+   */
+  async request(exchange, routingKey, message, timeoutMs = 3000) {
+    if (!this.channel) throw new Error('Channel not connected');
+
+    const correlationId = require('uuid').v4();
+    const { queue: replyQueue } = await this.channel.assertQueue('', { exclusive: true });
+
+    return new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        this.channel.deleteQueue(replyQueue);
+        reject(new Error('RPC Request Timed Out'));
+      }, timeoutMs);
+
+      this.channel.consume(replyQueue, (msg) => {
+        if (msg && msg.properties.correlationId === correlationId) {
+          clearTimeout(timeout);
+          const content = JSON.parse(msg.content.toString());
+          this.channel.deleteQueue(replyQueue);
+          resolve(content);
+        }
+      }, { noAck: true });
+
+      this.channel.publish(exchange, routingKey, Buffer.from(JSON.stringify(message)), {
+        correlationId,
+        replyTo: replyQueue
+      });
+    });
   }
 
   async health() {

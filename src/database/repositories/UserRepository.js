@@ -3,9 +3,9 @@ const BaseRepository = require('../BaseRepository');
 class UserRepository extends BaseRepository {
   async create(userData) {
     const query = `
-      INSERT INTO users (email, password_hash, first_name, last_name, phone, account_type, role, company_id, marqeta_user_token, metadata)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-      RETURNING id, email, first_name, last_name, phone, account_type, role, company_id, status, created_at
+      INSERT INTO users (email, password_hash, first_name, last_name, phone, account_type, role, company_id, marqeta_user_token, preferred_display_currency, metadata)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+      RETURNING id, email, first_name, last_name, phone, account_type, role, company_id, status, preferred_display_currency, created_at
     `;
     const result = await this.query(query, [
       userData.email,
@@ -17,6 +17,7 @@ class UserRepository extends BaseRepository {
       userData.role || 'employee',
       userData.companyId || null,
       userData.marqetaUserToken || null,
+      userData.preferredDisplayCurrency || 'USD',
       JSON.stringify(userData.metadata || {})
     ]);
     return result.rows[0];

@@ -8,9 +8,10 @@ import (
 )
 
 type User struct {
-	ID      string  `json:"id"`
-	Status  string  `json:"status"`
-	Balance float64 `json:"balance"`
+	ID                string  `json:"id"`
+	Status            string  `json:"status"`
+	PreferredCurrency string  `json:"preferred_currency"`
+	AccountType       string  `json:"account_type"`
 }
 
 func (s *JITFundingService) GetUserFromCache(userID string) (*User, error) {

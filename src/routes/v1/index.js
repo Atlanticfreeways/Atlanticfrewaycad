@@ -6,6 +6,7 @@ const sharedRoutes = require('../shared');
 const kycRoutes = require('../kyc');
 const eventsRoutes = require('../events');
 const partnerRoutes = require('../partners');
+const dashboardRoutes = require('../dashboard');
 
 const router = express.Router();
 
@@ -16,5 +17,9 @@ router.use('/shared', sharedRoutes);
 router.use('/kyc', kycRoutes);
 router.use('/events', eventsRoutes);
 router.use('/partners', partnerRoutes);
+router.use('/dashboard', dashboardRoutes);
+router.use('/rates', require('./rates'));
+router.use('/config', require('./config'));
+router.use('/compliance', require('./compliance'));
 
 module.exports = router;

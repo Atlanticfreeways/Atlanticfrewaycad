@@ -34,7 +34,7 @@ func (s *JITFundingService) ConsumeJITFundingQueue() {
 
 		decision := s.ProcessAuthorization(transaction)
 
-		if err := s.publishDecision(decision); err != nil {
+		if err := s.publishDecision(decision, msg.ReplyTo, msg.CorrelationId); err != nil {
 			log.Printf("Failed to publish decision: %v", err)
 			msg.Nack(false, true) // Requeue
 		} else {
@@ -43,12 +43,27 @@ func (s *JITFundingService) ConsumeJITFundingQueue() {
 	}
 }
 
-func (s *JITFundingService) publishDecision(decision AuthorizationDecision) error {
+func (s *JITFundingService) publishDecision(decision AuthorizationDecision, replyTo, correlationId string) error {
 	body, err := json.Marshal(decision)
 	if err != nil {
 		return err
 	}
 
+	// If RPC reply is requested
+	if replyTo != "" {
+		return s.channel.Publish(
+			"",      // default exchange
+			replyTo, // specific reply queue
+			false,   // mandatory
+			false,   // immediate
+			amqp.Publishing{
+				ContentType:   "application/json",
+				CorrelationId: correlationId,
+				Body:          body,
+			})
+	}
+
+	// Default broadcast behavior
 	return s.channel.Publish(
 		"transactions",      // exchange
 		"jit-funding.decision", // routing key

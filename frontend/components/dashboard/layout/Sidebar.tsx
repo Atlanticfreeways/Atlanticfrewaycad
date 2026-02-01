@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { LayoutDashboard, CreditCard, Activity, Settings, Users, FileText } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { CurrencySelector } from '../widgets/CurrencySelector';
 
 const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
@@ -47,7 +48,8 @@ export function Sidebar() {
                     );
                 })}
             </nav>
-            <div className="border-t border-slate-200 p-4">
+            <div className="border-t border-slate-200 p-4 space-y-4">
+                <CurrencySelector />
                 <div className="flex items-center">
                     <div className="h-8 w-8 rounded-full bg-slate-200" />
                     <div className="ml-3">

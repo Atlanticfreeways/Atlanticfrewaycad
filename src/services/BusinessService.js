@@ -97,10 +97,11 @@ class BusinessService {
 
   async getSpendingAnalytics(companyId, filters = {}) {
     const days = filters.days || 30;
-    
+
     const byMerchant = await this.transactionRepo.getSpendingByMerchant(companyId, days);
     const byEmployee = await this.transactionRepo.getSpendingByEmployee(companyId, days);
-    
+    const byCategory = await this.transactionRepo.getSpendingByCategory(companyId, days);
+
     const totalSpending = byMerchant.reduce((sum, m) => sum + parseFloat(m.total_amount || 0), 0);
     const totalTransactions = byMerchant.reduce((sum, m) => sum + m.transaction_count, 0);
 
@@ -110,7 +111,8 @@ class BusinessService {
       totalTransactions,
       averageTransaction: totalTransactions > 0 ? totalSpending / totalTransactions : 0,
       byMerchant,
-      byEmployee
+      byEmployee,
+      byCategory
     };
   }
 
@@ -137,7 +139,7 @@ class BusinessService {
     if (!card) throw new NotFoundError('Card');
 
     const existing = await this.spendingControlRepo.findByCard(cardId);
-    
+
     if (existing) {
       return await this.spendingControlRepo.update(cardId, controls);
     } else {

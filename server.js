@@ -35,6 +35,32 @@ const analyticsRoutes = require('./src/routes/analytics');
 const { specs, swaggerUi } = require('./src/docs/swagger');
 
 const app = express();
+const http = require('http');
+const server = http.createServer(app);
+const { Server } = require("socket.io");
+const io = new Server(server, {
+  cors: {
+    origin: process.env.FRONTEND_URL || "http://localhost:3001",
+    methods: ["GET", "POST"]
+  }
+});
+
+const JWTService = require('./src/services/auth/JWTService');
+
+io.use((socket, next) => {
+  const token = socket.handshake.auth.token;
+  if (!token) {
+    return next(new Error("Authentication error: No token provided"));
+  }
+  try {
+    const decoded = JWTService.verifyAccessToken(token);
+    socket.user = decoded; // Attach user to socket
+    next();
+  } catch (err) {
+    next(new Error("Authentication error: Invalid token"));
+  }
+});
+
 const PORT = process.env.PORT || 3000;
 
 // Security middleware
@@ -61,9 +87,9 @@ app.use((req, res, next) => {
 // Initialize database and repositories
 const initializeDatabase = async () => {
   await dbConnection.init();
-  
+
   const pgPool = dbConnection.getPostgres();
-  
+
   return {
     user: new UserRepository(pgPool),
     company: new CompanyRepository(pgPool),
@@ -81,15 +107,40 @@ app.use(async (req, res, next) => {
   try {
     if (!app.locals.repositories) {
       app.locals.repositories = await initializeDatabase();
-      
+
       // Initialize services
       const PartnerService = require('./src/services/PartnerService');
+      const ExchangeRateService = require('./src/services/ExchangeRateService');
+
+      const exchangeRateService = new ExchangeRateService(dbConnection.getRedis(), {}, io);
+      // Initialize (loads cache and starts background updates)
+      exchangeRateService.initialize().catch(err => logger.error('ExchangeRateService init failed', err));
+
+      const CurrencyConversionLogger = require('./src/services/CurrencyConversionLogger');
+      const conversionLogger = new CurrencyConversionLogger(dbConnection.getPostgres());
+
+      const commissionService = require('./src/services/CommissionCalculationService');
+      commissionService.init({
+        exchangeRate: exchangeRateService,
+        conversionLogger: conversionLogger
+      });
+
       app.locals.services = {
-        partner: new PartnerService(app.locals.repositories)
+        partner: new PartnerService(app.locals.repositories),
+        exchangeRate: exchangeRateService,
+        conversionLogger: conversionLogger,
+        commission: commissionService
       };
     }
+    // Initialize JIT Funding Service with services
+    if (!app.locals.jitFundingService) {
+      const JITFundingService = require('./src/services/JITFundingService');
+      app.locals.jitFundingService = new JITFundingService(app.locals.repositories, app.locals.services);
+    }
+
     req.repositories = app.locals.repositories;
     req.services = app.locals.services;
+    req.jitFundingService = app.locals.jitFundingService;
   } catch (err) {
     logger.error('Database initialization failed', { error: err.message });
     req.repositories = null;
@@ -178,7 +229,7 @@ app.use((req, res) => {
   res.status(404).json({ error: 'Endpoint not found' });
 });
 
-app.listen(PORT, async () => {
+server.listen(PORT, async () => {
   logger.info('Atlanticfrewaycard Platform started', {
     port: PORT,
     environment: process.env.NODE_ENV || 'development'

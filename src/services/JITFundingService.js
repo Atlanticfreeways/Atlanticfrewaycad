@@ -1,23 +1,52 @@
 const { ValidationError, ForbiddenError } = require('../errors/AppError');
 
 class JITFundingService {
-  constructor(repositories) {
+  constructor(repositories, services = {}) {
     this.userRepo = repositories.user;
     this.cardRepo = repositories.card;
     this.spendingControlRepo = repositories.spendingControl;
     this.transactionRepo = repositories.transaction;
+    this.exchangeRateService = services.exchangeRate;
+    this.conversionLogger = services.conversionLogger;
   }
 
   /**
    * Authorize a transaction in real-time
+   * Delegates to Go service via RPC for high performance
    * Target: <100ms response time
    */
   async authorizeTransaction(transactionData) {
     const startTime = Date.now();
-    
+
     try {
+      // Phase 3: Delegate to Go Authority
+      if (this.mq && process.env.USE_GO_JIT === 'true') {
+        try {
+          const decision = await this.mq.request('transactions', 'jit-funding.request', {
+            transactionId: transactionData.marqetaTransactionToken || `tx_${Date.now()}`,
+            userId: transactionData.userId || 'unknown',
+            cardId: transactionData.cardId,
+            amount: transactionData.amount,
+            currency: transactionData.currency || 'USD',
+            merchantName: transactionData.merchantName,
+            merchantCategory: transactionData.merchantCategory
+          }, 2500); // 2.5s timeout (Marqeta limit is 3s)
+
+          return {
+            approved: decision.approved,
+            reason: decision.reason,
+            timestamp: new Date().toISOString(),
+            processingTime: Date.now() - startTime
+          };
+        } catch (rpcError) {
+          console.error('Go JIT RPC failed, falling back to Node:', rpcError.message);
+          // Fallthrough to local logic below...
+        }
+      }
+
+      // Legacy Node Logic (Fallback)
       const { cardId, amount, merchantName, merchantCategory } = transactionData;
-      
+
       // Step 1: Get card details (should be cached)
       const card = await this.cardRepo.findById(cardId);
       if (!card) {
@@ -48,7 +77,35 @@ class JITFundingService {
 
       // Step 5: Check balance (for personal cards)
       if (user.account_type === 'personal') {
-        const balanceCheck = await this.checkBalance(user.id, amount);
+        const preferredCurrency = user.preferred_display_currency || 'USD';
+
+        // If transaction is in USD but user's source is different, or vice versa
+        // For MVP, we'll assume the simple case: if user has a crypto preference, we check that balance.
+        let fundingSource = 'USD';
+        let transactionAmount = amount;
+
+        if (preferredCurrency !== 'USD' && this.exchangeRateService) {
+          fundingSource = preferredCurrency;
+
+          // 1. Convert Transaction Amount to funding currency
+          const conversion = this.exchangeRateService.convert(amount, 'USD', fundingSource, true);
+          transactionAmount = conversion.amount;
+
+          // 2. Log for Compliance (Fix "Compliance Amnesia")
+          if (this.conversionLogger) {
+            await this.conversionLogger.logConversion({
+              userId: user.id,
+              fromCurrency: 'USD',
+              toCurrency: fundingSource,
+              amountSource: amount,
+              amountTarget: conversion.amount,
+              rate: conversion.rate,
+              spread: conversion.spreadApplied
+            });
+          }
+        }
+
+        const balanceCheck = await this.checkBalance(user.id, transactionAmount, fundingSource);
         if (!balanceCheck.allowed) {
           return this.createDecision(false, balanceCheck.reason, startTime);
         }
@@ -56,7 +113,7 @@ class JITFundingService {
 
       // All checks passed - approve transaction
       await this.updateSpendingCounters(cardId, amount);
-      
+
       return this.createDecision(true, 'APPROVED', startTime);
 
     } catch (error) {
@@ -80,8 +137,8 @@ class JITFundingService {
       if (controls.daily_limit) {
         const dailySpent = await this.getDailySpending(cardId, today);
         if (dailySpent + amount > controls.daily_limit) {
-          return { 
-            allowed: false, 
+          return {
+            allowed: false,
             reason: 'DAILY_LIMIT_EXCEEDED',
             details: { limit: controls.daily_limit, spent: dailySpent, attempted: amount }
           };
@@ -92,8 +149,8 @@ class JITFundingService {
       if (controls.monthly_limit) {
         const monthlySpent = await this.getMonthlySpending(cardId, thisMonth);
         if (monthlySpent + amount > controls.monthly_limit) {
-          return { 
-            allowed: false, 
+          return {
+            allowed: false,
             reason: 'MONTHLY_LIMIT_EXCEEDED',
             details: { limit: controls.monthly_limit, spent: monthlySpent, attempted: amount }
           };
@@ -115,7 +172,7 @@ class JITFundingService {
       }
 
       const restrictions = JSON.parse(controls.merchant_restrictions);
-      
+
       // Check blocked merchants
       if (restrictions.blocked_merchants && restrictions.blocked_merchants.includes(merchantName)) {
         return { allowed: false, reason: 'MERCHANT_BLOCKED' };
@@ -140,24 +197,26 @@ class JITFundingService {
     }
   }
 
-  async checkBalance(userId, amount) {
+  async checkBalance(userId, amount, currency = 'USD') {
     try {
       // For personal cards, check wallet balance
-      const wallet = await this.userRepo.query(
-        'SELECT balance FROM wallets WHERE user_id = $1',
-        [userId]
-      );
+      const query = `
+        SELECT balance 
+        FROM wallet_balances 
+        WHERE user_id = $1 AND currency = $2
+      `;
+      const wallet = await this.userRepo.query(query, [userId, currency]);
 
       if (!wallet.rows.length) {
-        return { allowed: false, reason: 'WALLET_NOT_FOUND' };
+        return { allowed: false, reason: 'CURRENCY_WALLET_NOT_FOUND' };
       }
 
       const balance = parseFloat(wallet.rows[0].balance) || 0;
       if (balance < amount) {
-        return { 
-          allowed: false, 
+        return {
+          allowed: false,
           reason: 'INSUFFICIENT_FUNDS',
-          details: { balance, attempted: amount }
+          details: { balance, attempted: amount, currency }
         };
       }
 
@@ -217,7 +276,7 @@ class JITFundingService {
 
   createDecision(approved, reason, startTime) {
     const duration = Date.now() - startTime;
-    
+
     // Log slow decisions for monitoring
     if (duration > 100) {
       console.warn(`Slow JIT funding decision: ${duration}ms`, { reason, approved });
@@ -237,7 +296,7 @@ class JITFundingService {
   async processTransactionWebhook(webhookData) {
     try {
       const { type, transaction } = webhookData;
-      
+
       if (type === 'transaction.authorization') {
         // Real-time authorization request
         return await this.authorizeTransaction({
@@ -262,14 +321,24 @@ class JITFundingService {
 
   async recordTransaction(transactionData) {
     try {
+      const MerchantEnrichmentService = require('./MerchantEnrichmentService');
+      const enrichment = MerchantEnrichmentService.enrich(transactionData.merchant?.name || 'Unknown', transactionData.merchant?.mcc || null);
+
       await this.transactionRepo.create({
         marqetaTransactionToken: transactionData.token,
         cardId: transactionData.card_token,
+        userId: transactionData.user_id || null, // Ensure we have the user ID
         amount: transactionData.amount / 100,
-        merchantName: transactionData.merchant?.name,
-        merchantCategory: transactionData.merchant?.mcc,
+        merchantName: enrichment.name,
+        merchantCategory: enrichment.category,
         status: transactionData.state,
         transactionType: transactionData.type,
+        metadata: {
+          original_merchant: transactionData.merchant?.name,
+          mcc: transactionData.merchant?.mcc,
+          group: enrichment.group,
+          parent_brand: enrichment.parentBrand
+        },
         createdAt: transactionData.created_time
       });
     } catch (error) {

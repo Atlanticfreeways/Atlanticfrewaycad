@@ -50,7 +50,7 @@ class PayoutService {
     return payout;
   }
 
-  // Process payout (simulate Stripe transfer)
+  // Process payout (via Paystack)
   async processPayout(payoutId) {
     const payout = this.payouts.get(payoutId);
     if (!payout) {
@@ -61,36 +61,39 @@ class PayoutService {
       throw new Error(`Payout already ${payout.status}`);
     }
 
-    // Simulate Stripe processing
-    await this.simulateStripeTransfer(payout);
+    const PaystackService = require('./PaystackService');
+    const partner = memoryStore.getPartner(payout.partner_id);
 
-    // Update payout status
-    payout.status = 'completed';
-    payout.processed_at = new Date().toISOString();
-    payout.stripe_transfer_id = 'tr_' + Math.random().toString(36).substring(7);
+    try {
+      // 1. Ensure recipient exists
+      if (!partner.paystack_recipient_code) {
+        const recipientCode = await PaystackService.createTransferRecipient(partner);
+        partner.paystack_recipient_code = recipientCode;
+        memoryStore.updatePartner(partner.id, { paystack_recipient_code: recipientCode });
+      }
 
-    this.payouts.set(payoutId, payout);
-    return payout;
-  }
+      // 2. Initiate Transfer
+      const transfer = await PaystackService.initiateTransfer(
+        partner.paystack_recipient_code,
+        payout.amount,
+        `Payout for ${payout.id}`
+      );
 
-  // Simulate Stripe Connect transfer
-  async simulateStripeTransfer(payout) {
-    // In production, this would call Stripe API:
-    // const transfer = await stripe.transfers.create({
-    //   amount: payout.amount * 100,
-    //   currency: 'usd',
-    //   destination: partner.stripe_account_id
-    // });
-    
-    return new Promise(resolve => {
-      setTimeout(() => {
-        resolve({
-          id: 'tr_' + Math.random().toString(36).substring(7),
-          amount: payout.amount,
-          status: 'succeeded'
-        });
-      }, 1000);
-    });
+      // 3. Update payout status to 'processing' (waiting for webhook)
+      payout.status = 'processing';
+      payout.processed_at = new Date().toISOString();
+      payout.paystack_reference = transfer.reference;
+      payout.paystack_transfer_id = transfer.transferId;
+
+      this.payouts.set(payoutId, payout);
+      return payout;
+
+    } catch (error) {
+      payout.status = 'failed';
+      payout.error = error.message;
+      this.payouts.set(payoutId, payout);
+      throw error;
+    }
   }
 
   // Get payout history for partner
@@ -112,7 +115,7 @@ class PayoutService {
     const totalPaidOut = payoutHistory
       .filter(p => p.status === 'completed')
       .reduce((sum, p) => sum + p.amount, 0);
-    
+
     return totalEarnings - totalPaidOut;
   }
 
@@ -158,7 +161,7 @@ class PayoutService {
     payout.status = 'cancelled';
     payout.cancelled_at = new Date().toISOString();
     this.payouts.set(payoutId, payout);
-    
+
     return payout;
   }
 }

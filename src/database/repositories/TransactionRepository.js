@@ -76,6 +76,52 @@ class TransactionRepository extends BaseRepository {
     const result = await this.query(query, [cardId, year, month]);
     return parseFloat(result.rows[0].total);
   }
+
+  async getSpendingByMerchant(companyId, days = 30) {
+    const query = `
+      SELECT t.merchant_name, SUM(t.amount) as total_amount, COUNT(*) as transaction_count
+      FROM transactions t
+      JOIN cards c ON t.card_id = c.id
+      JOIN users u ON c.user_id = u.id
+      WHERE u.company_id = $1
+      AND t.created_at >= NOW() - INTERVAL '1 day' * $2
+      GROUP BY t.merchant_name
+      ORDER BY total_amount DESC
+    `;
+    const result = await this.query(query, [companyId, days]);
+    return result.rows;
+  }
+
+  async getSpendingByEmployee(companyId, days = 30) {
+    const query = `
+      SELECT u.first_name, u.last_name, SUM(t.amount) as total_amount, COUNT(*) as transaction_count
+      FROM transactions t
+      JOIN cards c ON t.card_id = c.id
+      JOIN users u ON c.user_id = u.id
+      WHERE u.company_id = $1
+      AND t.created_at >= NOW() - INTERVAL '1 day' * $2
+      GROUP BY u.id, u.first_name, u.last_name
+      ORDER BY total_amount DESC
+    `;
+    const result = await this.query(query, [companyId, days]);
+    return result.rows;
+  }
+
+  async getSpendingByCategory(companyId, days = 30) {
+    const query = `
+      SELECT t.merchant_category as category, SUM(t.amount) as total_amount, COUNT(*) as transaction_count
+      FROM transactions t
+      JOIN cards c ON t.card_id = c.id
+      JOIN users u ON c.user_id = u.id
+      WHERE u.company_id = $1
+      AND t.created_at >= NOW() - INTERVAL '1 day' * $2
+      GROUP BY t.merchant_category
+      ORDER BY total_amount DESC
+    `;
+    const result = await this.query(query, [companyId, days]);
+    return result.rows;
+  }
 }
+
 
 module.exports = TransactionRepository;

@@ -19,16 +19,25 @@ class WebhookProcessorService {
       return existingTx;
     }
 
+    const MerchantEnrichmentService = require('../MerchantEnrichmentService');
+    const enrichment = MerchantEnrichmentService.enrich(merchant?.name || 'Unknown', merchant?.mcc || null);
+
     const transaction = await this.transactionRepo.create({
       marqetaTransactionToken: token,
       cardId: card.id,
       userId: card.user_id,
       amount: parseFloat(amount),
       currency: 'USD',
-      merchantName: merchant?.name || 'Unknown',
-      merchantCategory: merchant?.mcc || null,
+      merchantName: enrichment.name,
+      merchantCategory: enrichment.category,
       status: state,
-      metadata: { webhook_data: webhookData }
+      metadata: {
+        webhook_data: webhookData,
+        original_merchant: merchant?.name,
+        mcc: merchant?.mcc,
+        group: enrichment.group,
+        parent_brand: enrichment.parentBrand
+      }
     });
 
     console.log('Transaction processed:', transaction.id);
