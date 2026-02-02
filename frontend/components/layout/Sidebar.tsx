@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, CreditCard, PieChart, Building2, UserCircle, Settings, LogOut } from "lucide-react";
+import { LayoutDashboard, CreditCard, PieChart, Building2, Settings, LogOut, FileText, Landmark } from "lucide-react";
 import clsx from "clsx";
 
 const navigation = [
@@ -10,6 +10,9 @@ const navigation = [
     { name: "My Cards", href: "/cards", icon: CreditCard },
     { name: "Transactions", href: "/transactions", icon: PieChart },
     { name: "Business", href: "/business", icon: Building2 },
+    // Admin Tools
+    { name: "Reconciliation", href: "/admin/reconciliation", icon: FileText },
+    { name: "Banking Sim", href: "/admin/banking", icon: Landmark },
 ];
 
 export function Sidebar() {

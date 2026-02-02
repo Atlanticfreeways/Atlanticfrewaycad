@@ -15,7 +15,6 @@ services:
       - .env
     depends_on:
       - postgres
-      - mongodb
       - redis
       - rabbitmq
     restart: unless-stopped
@@ -63,21 +62,6 @@ services:
       timeout: 5s
       retries: 5
 
-  mongodb:
-    image: mongo:7
-    environment:
-      MONGO_INITDB_DATABASE: atlanticfrewaycard
-    volumes:
-      - mongodb_data:/data/db
-    ports:
-      - "27017:27017"
-    restart: unless-stopped
-    healthcheck:
-      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
   redis:
     image: redis:7-alpine
     ports:
@@ -121,6 +105,5 @@ services:
 
 volumes:
   postgres_data:
-  mongodb_data:
   redis_data:
   rabbitmq_data:
