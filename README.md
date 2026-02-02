@@ -27,6 +27,30 @@ We have unified the startup into a single robust script:
 
 ---
 
+## 💳 Card Tiers & Capabilities
+
+Atlanticfrewaycard offers tiered card products designed for specific user needs and risk profiles.
+
+### 🥉 Standard Tier (Visa / Verve)
+*   **Target**: Individual users and entry-level accounts.
+    *   **Acceptance**: Perfect for [Online Payments] and [In-Store Retail].
+    *   **Limits**: Restricted daily spending ($1,000 max) and limited merchant categories.
+    *   **Features**: Virtual-only by default, 3D Secure enabled.
+
+### 🥈 Business Tier (Visa)
+*   **Target**: Employee management and operational expenses.
+    *   **Acceptance**: Wide [Global Acceptance], [Subscription Management], and [Travel/Hotel Booking].
+    *   **Limits**: Flexible $5,000+ daily limits.
+    *   **Features**: Supports physical card fulfillment, real-time merchant enrichment.
+
+### 🥇 Enterprise Tier (Mastercard)
+*   **Target**: Treasury management and corporate high-value spending.
+    *   **Acceptance**: [Unlimited Merchant Access], [ATM Cash Access], [Credit-Line Capabilities].
+    *   **Limits**: High-velocity corporate caps ($10k - $50k+).
+    *   **Features**: Metal card options, dedicated account manager, raw ISO 8583 data access.
+
+---
+
 ## 🏗️ Architecture
 
 Atlanticfrewaycard leverages a high-performance hybrid architecture:

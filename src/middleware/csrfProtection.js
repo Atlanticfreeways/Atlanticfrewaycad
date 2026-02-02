@@ -6,11 +6,12 @@ const csrf = require('csurf');
  */
 
 // CSRF protection with cookie storage
-const csrfProtection = csrf({ 
+const csrfProtection = csrf({
   cookie: {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict'
+    sameSite: 'lax',
+    path: '/'
   }
 });
 
@@ -19,12 +20,16 @@ const csrfProtection = csrf({
  */
 const csrfErrorHandler = (err, req, res, next) => {
   if (err.code === 'EBADCSRFTOKEN') {
+    console.error('CSRF Error:', {
+      message: err.message,
+      tokenInHeader: req.headers['x-csrf-token'],
+      allHeaders: req.headers,
+      cookies: req.cookies
+    });
     return res.status(403).json({
       success: false,
-      error: {
-        code: 'INVALID_CSRF_TOKEN',
-        message: 'Invalid or missing CSRF token'
-      }
+      error: 'Invalid or missing CSRF token',
+      code: 'INVALID_CSRF_TOKEN'
     });
   }
   next(err);

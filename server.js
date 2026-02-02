@@ -73,14 +73,28 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-// Input sanitization middleware
+// Input sanitization middleware (excluding passwords)
 app.use((req, res, next) => {
-  if (req.body && typeof req.body === 'object') {
-    req.body = sanitizeInput(req.body);
-  }
-  if (req.query && typeof req.query === 'object') {
-    req.query = sanitizeInput(req.query);
-  }
+  const sanitize = (data) => {
+    if (typeof data === 'string') return data.trim();
+    if (Array.isArray(data)) return data.map(sanitize);
+    if (data && typeof data === 'object') {
+      const sanitized = {};
+      for (const [key, value] of Object.entries(data)) {
+        // DO NOT sanitize passwords or they will fail hash checks
+        if (key.toLowerCase().includes('password')) {
+          sanitized[key] = value;
+        } else {
+          sanitized[key] = sanitizeInput(value);
+        }
+      }
+      return sanitized;
+    }
+    return data;
+  };
+
+  if (req.body) req.body = sanitize(req.body);
+  if (req.query) req.query = sanitize(req.query);
   next();
 });
 

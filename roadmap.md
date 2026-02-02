@@ -56,8 +56,27 @@ A seamless financial experience where users can hold, spend, and view balances i
 
 ---
 
+## 🚀 Phase 4: Enterprise Readiness & Analytics Efficiency (Weeks 9-12)
+**Goal**: Transition from a single-user dashboard to a robust, scalable enterprise platform.
+
+### 4.1 Advanced Analytics & Observability
+- [ ] **Transaction Intelligence**: Implement a "deep-dive" analysis view for Marqeta transactions, showing raw metadata, interchange fees, and enrichment data.
+- [ ] **Real-time Monitoring**: Integrate Prometheus/Grafana to track JIT Funding latency, API uptime, and webhook success rates.
+- [ ] **Predictive Spending**: Use historical data to project future treasury needs across different currency buckets.
+
+### 4.2 Corporate Governance & RBAC
+- [ ] **Team Management**: Allow Business Admins to invite members with granular permissions (e.g., "Viewer", "Card Issuer", "Finance Manager").
+- [ ] **Approval Workflows**: Add "dual-approval" requirements for high-value wallet withdrawals or bulk card creations.
+- [ ] **Immutable Audit Log**: Exportable CSV/PDF reports of all administrative actions for compliance audits.
+
+### 4.3 Data Enrichment & Reconciliation
+- [ ] **Merchant Enrichment**: Integration with services like Mercury or Clearbit to provide logos, clean merchant names, and verified categories.
+- [ ] **Automated Reconciliation**: A dashboard tool to cross-reference Marqeta settlements with internal wallet balances and ledger entries.
+
+---
+
 > [!TIP]
-> **Why OpenExchangeRates?** It provides a highly reliable REST API for fiat and is the industry standard for business applications requiring historical and real-time forex data. 
+> **Enterprise Strategy**: By centralizing these "in-house" builds for dashboard analysis, we move beyond simple card management into a full-scale Treasury Management System (TMS).
 
 > [!IMPORTANT]
-> **Crypto as a Primary Balance**: By making crypto "optional" for display but "natively supported" for funding, we cater to both traditional business users and web3-native individuals.
+> **Security & Readiness**: All Phase 4 features are built with a "Security First" approach, ensuring that SOC2/PCI-DSS compliance is simplified through automated record-keeping.

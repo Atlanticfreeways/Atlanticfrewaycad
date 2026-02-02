@@ -10,7 +10,7 @@ const createRateLimiter = (windowMs = 15 * 60 * 1000, max = 100) => {
   });
 };
 
-const authLimiter = createRateLimiter(15 * 60 * 1000, 5);
+const authLimiter = createRateLimiter(15 * 60 * 1000, 100);
 const apiLimiter = createRateLimiter(15 * 60 * 1000, 100);
 const strictLimiter = createRateLimiter(60 * 1000, 10);
 

@@ -5,6 +5,7 @@ export class ApiClient {
 
   constructor() {
     this.baseURL = process.env.NEXT_PUBLIC_API_URL || '/api/v1';
+
     if (typeof window !== 'undefined') {
       this.token = localStorage.getItem('token');
       this.csrfToken = localStorage.getItem('csrfToken');
@@ -27,7 +28,9 @@ export class ApiClient {
 
   async fetchCSRF() {
     try {
-      const res = await fetch(`${this.baseURL}/csrf-token`); // Note: /api/v1 prefix handling
+      const res = await fetch(`${this.baseURL}/csrf-token`, {
+        credentials: 'include'
+      });
       const data = await res.json();
       this.csrfToken = data.csrfToken;
       if (typeof window !== 'undefined') localStorage.setItem('csrfToken', data.csrfToken);
@@ -37,34 +40,38 @@ export class ApiClient {
   }
 
   async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-    const headers: HeadersInit = {
+    const headers: any = {
       'Content-Type': 'application/json',
-      ...options.headers as any,
+      ...(options.headers || {}),
     };
 
     if (this.token) {
       headers['Authorization'] = `Bearer ${this.token}`;
     }
 
-    // Attach CSRF if available
+    // Attach CSRF if available (Standard headers)
     if (this.csrfToken) {
-      headers['data-csrf-token'] = this.csrfToken;
+      headers['X-CSRF-Token'] = this.csrfToken;
+      console.log('--- API REQUEST ---');
+      console.log('Endpoint:', endpoint);
+      console.log('CSRF Token being sent:', this.csrfToken);
+      console.log('All Headers:', headers);
     }
 
     const response = await fetch(`${this.baseURL}${endpoint}`, {
       ...options,
       headers,
+      credentials: 'include',
     });
 
     if (response.status === 401) {
-      // Handle unauthorized (logout or refresh)
-      // For now, just throw
       throw new Error('Unauthorized');
     }
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || errorData.error || 'API Request Failed');
+      const message = errorData.error?.message || errorData.error || errorData.message || 'API Request Failed';
+      throw new Error(typeof message === 'object' ? JSON.stringify(message) : message);
     }
 
     return response.json();

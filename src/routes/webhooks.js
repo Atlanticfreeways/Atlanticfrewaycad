@@ -6,24 +6,8 @@ const WebhookProcessorService = require('../services/marqeta/WebhookProcessorSer
 
 const router = express.Router();
 
-router.post('/marqeta/jit', verifyMarqetaSignature, asyncHandler(async (req, res) => {
-  const jitService = new JITFundingService(req.repositories);
-  // Using the centralized webhook processor method
-  const response = await jitService.processTransactionWebhook(req.body);
-  res.json(response);
-}));
-
-router.post('/marqeta/transaction', verifyMarqetaSignature, asyncHandler(async (req, res) => {
-  const webhookProcessor = new WebhookProcessorService(req.repositories);
-  await webhookProcessor.processTransaction(req.body);
-  res.json({ success: true });
-}));
-
-router.post('/marqeta/cardstatechange', verifyMarqetaSignature, asyncHandler(async (req, res) => {
-  const webhookProcessor = new WebhookProcessorService(req.repositories);
-  await webhookProcessor.processCardStateChange(req.body);
-  res.json({ success: true });
-}));
+// Marqeta Webhooks (Unified Handler with ISO 8583 Logging)
+router.use('/marqeta', require('./webhooks/marqeta'));
 
 // Paystack Webhooks
 router.use('/paystack', require('./webhooks/paystack'));

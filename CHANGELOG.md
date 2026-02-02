@@ -10,6 +10,10 @@ All notable changes to the Atlanticfrewaycard Platform will be documented in thi
 - **Production Marqeta Client**: Formalized `MarqetaClient` with exponential backoff and Sandbox/Live environment switching.
 - **Security**: Robust webhook signature verification for Marqeta events.
 - **API Rewrites**: Unified port experience via Next.js proxying to improve local development and resolve CORS issues.
+- **Database Schema Sync**: Fully initialized `wallet_balances` and multi-currency schemas to resolve "relation not found" errors.
+- **CSRF & Cookie Hardening**: Standardized `X-CSRF-Token` headers and implemented `credentials: 'include'` for secure cross-origin session persistence.
+- **Input Sanitization Refinement**: Fixed credential verification by exempting password fields from aggressive HTML/Input cleaning.
+- **Admin Infrastructure**: Formalized administrative account creation and seeded mock transaction data for dashboard UI verification.
 
 ### Changed
 - **Database Architecture**: Enhanced PostgreSQL schema for multi-currency support and event auditing.

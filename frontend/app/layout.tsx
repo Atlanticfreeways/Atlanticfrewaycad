@@ -3,6 +3,7 @@ import './globals.css';
 import React, { useState } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { CurrencyProvider } from '@/lib/contexts/CurrencyContext';
+import { AuthProvider } from '@/contexts/AuthContext';
 
 export default function RootLayout({
   children,
@@ -22,9 +23,11 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <QueryClientProvider client={queryClient}>
-          <CurrencyProvider>
-            {children}
-          </CurrencyProvider>
+          <AuthProvider>
+            <CurrencyProvider>
+              {children}
+            </CurrencyProvider>
+          </AuthProvider>
         </QueryClientProvider>
       </body>
     </html>

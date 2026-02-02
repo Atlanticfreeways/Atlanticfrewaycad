@@ -1,4 +1,4 @@
-# SpendCtrl Technical Architecture
+# Atlanticfrewaycard Technical Architecture
 
 ## System Architecture Overview
 

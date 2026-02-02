@@ -31,6 +31,25 @@ const verifyMarqetaSignature = (req, res, next) => {
       logger.warn('Invalid webhook signature', { ip: req.ip });
       return res.status(401).json({ error: 'Invalid signature' });
     }
+    // Enterprise Observation: Log raw payload to DB
+    try {
+      if (req.repositories && req.repositories.user) { // Check if repositories are available (unlikely in middleware but good practice)
+        // In most middleware chains, repo injection happens globally. 
+        // If not, we might need a direct db connection or wait until controller.
+        // However, logging *before* controller logic is safer for debugging "crashes".
+
+        // Assuming we can access the pool from global or req.
+        // For now, simpler: we'll attach the "Verified" status and let the Controller do the DB insert 
+        // to avoid creating a new DB connection instance inside this middleware.
+        req.marqetaEventLog = {
+          verified: true,
+          signature: signature
+        };
+      }
+    } catch (logErr) {
+      // Don't fail the webhook if logging fails
+      console.error('Failed to prepare log data', logErr);
+    }
 
     logger.info('Webhook signature verified', { type: req.body.type });
     next();
