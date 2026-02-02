@@ -68,10 +68,17 @@ app.use(helmet());
 app.use(cors(corsOptions));
 app.use(apiLimiter);
 
+const httpContext = require('express-http-context');
+const requestId = require('./src/middleware/requestId');
+
 // Body parsing
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+
+// Tracing Middleware (Must be before inputs)
+app.use(httpContext.middleware);
+app.use(requestId);
 
 // Input sanitization middleware (excluding passwords)
 app.use((req, res, next) => {

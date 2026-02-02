@@ -28,10 +28,13 @@ router.get('/overview', authMiddleware, requireRole([ROLES.BUSINESS_ADMIN, ROLES
     }
 });
 
+const idempotency = require('../../../middleware/idempotency');
+
 // POST /api/v1/business/finance/load-funds
 // Load funds into the company wallet
 // Accessible by: Business Admin ONLY (Finance Manager cannot initiate transfers yet)
-router.post('/load-funds', authMiddleware, requireRole([ROLES.BUSINESS_ADMIN]), async (req, res) => {
+// Security: Idempotency required to prevent double billing
+router.post('/load-funds', authMiddleware, requireRole([ROLES.BUSINESS_ADMIN]), idempotency, async (req, res) => {
     // ... Logic to load funds via ACH/Wire ...
     res.json({ message: 'Fund load initiated' });
 });

@@ -30,6 +30,7 @@ const jitTracesRouter = require('./admin/jitTraces');
 router.use('/admin', marqetaLogsRouter);
 router.use('/admin', marqetaLogsRouter);
 router.use('/admin', jitTracesRouter);
+router.use('/admin/reconcile', require('./admin/reconciliation'));
 router.use('/banking', require('./banking'));
 
 module.exports = router;

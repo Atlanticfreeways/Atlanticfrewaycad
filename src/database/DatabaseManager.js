@@ -1,5 +1,4 @@
 const PostgreSQLAdapter = require('../adapters/PostgreSQLAdapter');
-const MongoDBAdapter = require('../adapters/MongoDBAdapter');
 const RedisAdapter = require('../adapters/RedisAdapter');
 const MessageQueueManager = require('../queue/MessageQueueManager');
 const logger = require('../utils/logger');
@@ -8,7 +7,6 @@ class DatabaseManager {
   constructor(config) {
     this.config = config;
     this.postgres = null;
-    this.mongodb = null;
     this.redis = null;
     this.messageQueue = null;
   }
@@ -22,11 +20,6 @@ class DatabaseManager {
       await this.postgres.testConnection();
       logger.info('PostgreSQL connected');
 
-      // Initialize MongoDB
-      this.mongodb = new MongoDBAdapter(this.config);
-      await this.mongodb.connect();
-      logger.info('MongoDB connected');
-
       // Initialize Redis
       this.redis = new RedisAdapter(this.config);
       await this.redis.connect();
@@ -37,9 +30,6 @@ class DatabaseManager {
       await this.messageQueue.connect();
       logger.info('Message Queue connected');
 
-      // Create MongoDB indexes
-      await this.createMongoDBIndexes();
-
       // Create PostgreSQL indexes
       await this.createPostgreSQLIndexes();
 
@@ -47,42 +37,12 @@ class DatabaseManager {
 
       return {
         postgres: this.postgres,
-        mongodb: this.mongodb,
         redis: this.redis,
         messageQueue: this.messageQueue
       };
     } catch (error) {
       logger.error('Failed to initialize database connections:', error);
       throw error;
-    }
-  }
-
-  async createMongoDBIndexes() {
-    try {
-      // Personal users indexes
-      await this.mongodb.createIndexes('personalUsers', [
-        { keys: { userId: 1 } },
-        { keys: { email: 1 }, options: { unique: true } },
-        { keys: { kycStatus: 1, createdAt: -1 } }
-      ]);
-
-      // Personal cards indexes
-      await this.mongodb.createIndexes('personalCards', [
-        { keys: { userId: 1, status: 1 } },
-        { keys: { cardId: 1 }, options: { unique: true } },
-        { keys: { createdAt: -1 } }
-      ]);
-
-      // Personal transactions indexes
-      await this.mongodb.createIndexes('personalTransactions', [
-        { keys: { userId: 1, createdAt: -1 } },
-        { keys: { cardId: 1, status: 1 } },
-        { keys: { transactionId: 1 }, options: { unique: true } }
-      ]);
-
-      logger.info('MongoDB indexes created');
-    } catch (error) {
-      logger.error('Failed to create MongoDB indexes:', error);
     }
   }
 
@@ -129,7 +89,6 @@ class DatabaseManager {
   async getHealthStatus() {
     const status = {
       postgres: 'unknown',
-      mongodb: 'unknown',
       redis: 'unknown',
       messageQueue: 'unknown'
     };
@@ -140,14 +99,6 @@ class DatabaseManager {
       status.postgres = pgStats ? 'healthy' : 'unhealthy';
     } catch (error) {
       status.postgres = 'unhealthy';
-    }
-
-    try {
-      // Check MongoDB
-      const mongoStats = await this.mongodb.getConnectionStats();
-      status.mongodb = mongoStats ? 'healthy' : 'unhealthy';
-    } catch (error) {
-      status.mongodb = 'unhealthy';
     }
 
     try {
@@ -177,10 +128,6 @@ class DatabaseManager {
 
       if (this.postgres) {
         await this.postgres.close();
-      }
-
-      if (this.mongodb) {
-        await this.mongodb.close();
       }
 
       if (this.redis) {

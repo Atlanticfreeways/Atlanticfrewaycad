@@ -33,23 +33,36 @@ class MessageQueueManager {
   }
 
   async setupQueues() {
-    // Exchange
+    // 1. Exchanges
     await this.channel.assertExchange('transactions', 'topic', { durable: true });
+    // DLX (Dead Letter Exchange)
+    await this.channel.assertExchange('dlx', 'fanout', { durable: true });
 
-    // Queues
-    await this.channel.assertQueue('jit-funding-queue', { durable: true });
-    await this.channel.assertQueue('transaction-processing-queue', { durable: true });
-    await this.channel.assertQueue('webhook-queue', { durable: true });
+    // 2. Queues with Dead Letter Configuration
+    const queuePolicy = {
+      durable: true,
+      arguments: {
+        'x-dead-letter-exchange': 'dlx', // Forward rejected msgs here
+        // 'x-dead-letter-routing-key': 'failed' // Optional specific routing
+      }
+    };
 
-    // Dead letter queue
+    await this.channel.assertQueue('jit-funding-queue', queuePolicy);
+    await this.channel.assertQueue('transaction-processing-queue', queuePolicy);
+    await this.channel.assertQueue('webhook-queue', queuePolicy);
+
+    // 3. The actual Dead Letter Queue (where failed msgs live)
     await this.channel.assertQueue('jit-funding-dlq', { durable: true });
 
-    // Bindings
+    // Bind DLX to DLQ
+    await this.channel.bindQueue('jit-funding-dlq', 'dlx', '#');
+
+    // 4. Bindings for Main Queues
     await this.channel.bindQueue('jit-funding-queue', 'transactions', 'jit-funding.*');
     await this.channel.bindQueue('transaction-processing-queue', 'transactions', 'transaction.*');
     await this.channel.bindQueue('webhook-queue', 'transactions', 'webhook.*');
 
-    logger.info('RabbitMQ queues and exchanges setup complete');
+    logger.info('RabbitMQ queues and exchanges (with DLQ) setup complete');
   }
 
   async publishMessage(exchange, routingKey, message, retries = 0) {
