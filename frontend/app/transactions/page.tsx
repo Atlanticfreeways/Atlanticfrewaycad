@@ -149,7 +149,8 @@ export default function TransactionsPage() {
                     />
                 ) : (
                     <>
-                        <div className="bg-slate-800/50 rounded-xl border border-slate-700 overflow-hidden">
+                        {/* Desktop Table View */}
+                        <div className="hidden md:block bg-slate-800/50 rounded-xl border border-slate-700 overflow-hidden">
                             <div className="overflow-x-auto">
                                 <table className="w-full">
                                     <thead>
@@ -200,6 +201,36 @@ export default function TransactionsPage() {
                                     </tbody>
                                 </table>
                             </div>
+                        </div>
+
+                        {/* Mobile Card View */}
+                        <div className="md:hidden space-y-3">
+                            {filteredTransactions.map((transaction) => (
+                                <div key={transaction.id} className="bg-slate-800/50 rounded-lg border border-slate-700 p-4">
+                                    <div className="flex items-start justify-between mb-3">
+                                        <div className="flex-1">
+                                            <h3 className="text-white font-medium">{transaction.merchant_name}</h3>
+                                            <p className="text-xs text-slate-400 mt-1">
+                                                {transaction.mcc_description || 'Other'}
+                                            </p>
+                                        </div>
+                                        <StatusBadge status={transaction.status} />
+                                    </div>
+                                    <div className="flex items-center justify-between pt-3 border-t border-slate-700">
+                                        <span className="text-xs text-slate-400">
+                                            {new Date(transaction.created_at).toLocaleString('en-US', {
+                                                month: 'short',
+                                                day: 'numeric',
+                                                hour: '2-digit',
+                                                minute: '2-digit'
+                                            })}
+                                        </span>
+                                        <span className="text-lg font-semibold text-white">
+                                            ${transaction.amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                        </span>
+                                    </div>
+                                </div>
+                            ))}
                         </div>
 
                         {/* Pagination */}
