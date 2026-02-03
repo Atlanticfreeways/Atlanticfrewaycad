@@ -5,7 +5,7 @@ const authMiddleware = require('../../../middleware/auth'); // Assuming you have
 
 // GET /api/v1/admin/marqeta-logs
 // Retrieve raw Marqeta webhook logs for troubleshooting
-router.get('/marqeta-logs', authMiddleware, async (req, res) => {
+router.get('/marqeta-logs', authMiddleware.authenticateToken, async (req, res) => {
     try {
         // Simple authorization check (RBAC should be better in future)
         if (req.user.role !== 'admin') {

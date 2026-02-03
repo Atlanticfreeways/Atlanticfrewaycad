@@ -7,7 +7,7 @@ const logger = require('../../../utils/logger');
 // GET /api/v1/business/finance/overview
 // Financial Overview (Balance, Burn Rate, Monthly Spend)
 // Accessible by: Business Admin, Finance Manager
-router.get('/overview', authMiddleware, requireRole([ROLES.BUSINESS_ADMIN, ROLES.FINANCE_MANAGER]), async (req, res) => {
+router.get('/overview', authMiddleware.authenticateToken, requireRole([ROLES.BUSINESS_ADMIN, ROLES.FINANCE_MANAGER]), async (req, res) => {
     try {
         const companyId = req.user.company_id;
 
@@ -34,7 +34,7 @@ const idempotency = require('../../../middleware/idempotency');
 // Load funds into the company wallet
 // Accessible by: Business Admin ONLY (Finance Manager cannot initiate transfers yet)
 // Security: Idempotency required to prevent double billing
-router.post('/load-funds', authMiddleware, requireRole([ROLES.BUSINESS_ADMIN]), idempotency, async (req, res) => {
+router.post('/load-funds', authMiddleware.authenticateToken, requireRole([ROLES.BUSINESS_ADMIN]), idempotency, async (req, res) => {
     // ... Logic to load funds via ACH/Wire ...
     res.json({ message: 'Fund load initiated' });
 });

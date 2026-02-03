@@ -1,12 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const BankingService = require('../../../services/banking/BankingService');
-const authMiddleware = require('../../../middleware/auth');
+const BankingService = require('../../services/banking/BankingService.js');
+const authMiddleware = require('../../middleware/auth');
 // const adminMiddleware = require('../../../middleware/admin'); // If we had one
 
 // GET /api/v1/banking/account
 // Get the user's Virtual Account details (Routing/Account Number)
-router.get('/account', authMiddleware, async (req, res) => {
+router.get('/account', authMiddleware.authenticateToken, async (req, res) => {
     try {
         const bankingService = new BankingService(req.repositories);
         const account = await bankingService.getOrCreateVirtualAccount(req.user.id);
@@ -24,7 +24,7 @@ router.get('/account', authMiddleware, async (req, res) => {
 
 // POST /api/v1/banking/simulate-deposit (Admin/Dev Only)
 // Simulate an incoming payroll deposit
-router.post('/simulate-deposit', authMiddleware, async (req, res) => {
+router.post('/simulate-deposit', authMiddleware.authenticateToken, async (req, res) => {
     // strict check for admin or dev env
     if (req.user.role !== 'admin' && process.env.NODE_ENV === 'production') {
         return res.status(403).json({ error: 'Simulation not allowed in production without admin rights' });

@@ -22,7 +22,7 @@ const reconcileSchema = Joi.object({
 
 // POST /api/v1/admin/reconcile/run
 // Trigger an ad-hoc reconciliation for a specific date
-router.post('/run', authMiddleware, requireRole([ROLES.ADMIN, ROLES.FINANCE_MANAGER]), validate(reconcileSchema), async (req, res) => {
+router.post('/run', authMiddleware.authenticateToken, requireRole([ROLES.ADMIN, ROLES.FINANCE_MANAGER]), validate(reconcileSchema), async (req, res) => {
     try {
         const { date, records } = req.body;
         // Validation handled by middleware
@@ -39,7 +39,7 @@ router.post('/run', authMiddleware, requireRole([ROLES.ADMIN, ROLES.FINANCE_MANA
 
 // GET /api/v1/admin/reconcile/history
 // Get list of past reconciliations
-router.get('/history', authMiddleware, requireRole([ROLES.ADMIN, ROLES.FINANCE_MANAGER]), async (req, res) => {
+router.get('/history', authMiddleware.authenticateToken, requireRole([ROLES.ADMIN, ROLES.FINANCE_MANAGER]), async (req, res) => {
     try {
         const result = await req.repositories.user.pool.query(
             `SELECT * FROM settlements ORDER BY settlement_date DESC LIMIT 30`

@@ -5,7 +5,7 @@ const authMiddleware = require('../../../middleware/auth');
 
 // GET /api/v1/admin/jit-traces/:token
 // Retrieve the step-by-step execution path for a specific Marqeta transaction
-router.get('/jit-traces/:token', authMiddleware, async (req, res) => {
+router.get('/jit-traces/:token', authMiddleware.authenticateToken, async (req, res) => {
     try {
         if (req.user.role !== 'admin') {
             return res.status(403).json({ error: 'Access denied' });

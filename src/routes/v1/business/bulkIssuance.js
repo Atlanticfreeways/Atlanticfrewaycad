@@ -16,7 +16,7 @@ const { requireRole, ROLES } = require('../../../middleware/rbac');
 // POST /api/v1/business/bulk-issue
 // Upload a CSV file to issue cards to multiple employees
 // Roles: Admin (Platform) or Business Admin (Company Owner)
-router.post('/bulk-issue', authMiddleware, requireRole([ROLES.BUSINESS_ADMIN, 'business_manager']), upload.single('file'), async (req, res) => {
+router.post('/bulk-issue', authMiddleware.authenticateToken, requireRole([ROLES.BUSINESS_ADMIN, 'business_manager']), upload.single('file'), async (req, res) => {
     try {
         if (!req.file) {
             return res.status(400).json({ error: 'No CSV file provided' });
