@@ -34,6 +34,9 @@ router.use('/users', require('./users/apiKeys')); // NEW: API key management
 // Notifications
 router.use('/notifications', require('./notifications')); // NEW: Notifications center
 
+// Reports
+router.use('/reports', require('./reports')); // NEW: Analytics and reports
+
 // Admin Routes
 const marqetaLogsRouter = require('./admin/marqetaLogs');
 const jitTracesRouter = require('./admin/jitTraces');
