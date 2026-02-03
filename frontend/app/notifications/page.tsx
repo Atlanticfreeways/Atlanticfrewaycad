@@ -1,0 +1,178 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { DashboardShell } from '@/components/layout/DashboardShell';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Bell, CreditCard, Shield, CheckCircle, AlertCircle, Trash2 } from 'lucide-react';
+
+interface Notification {
+    id: string;
+    type: 'transaction' | 'security' | 'kyc' | 'system';
+    title: string;
+    message: string;
+    read_at: string | null;
+    created_at: string;
+    data?: any;
+}
+
+export default function NotificationsPage() {
+    const [notifications, setNotifications] = useState<Notification[]>([]);
+    const [filter, setFilter] = useState<string>('all');
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        fetchNotifications();
+    }, []);
+
+    const fetchNotifications = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch('/api/v1/notifications', {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            const data = await response.json();
+            if (data.success) {
+                setNotifications(data.notifications);
+            }
+        } catch (error) {
+            console.error('Failed to fetch notifications:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const markAsRead = async (id: string) => {
+        try {
+            const token = localStorage.getItem('token');
+            await fetch(`/api/v1/notifications/${id}/read`, {
+                method: 'PATCH',
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            setNotifications(notifications.map(n =>
+                n.id === id ? { ...n, read_at: new Date().toISOString() } : n
+            ));
+        } catch (error) {
+            console.error('Failed to mark as read:', error);
+        }
+    };
+
+    const deleteNotification = async (id: string) => {
+        try {
+            const token = localStorage.getItem('token');
+            await fetch(`/api/v1/notifications/${id}`, {
+                method: 'DELETE',
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            setNotifications(notifications.filter(n => n.id !== id));
+        } catch (error) {
+            console.error('Failed to delete notification:', error);
+        }
+    };
+
+    const getIcon = (type: string) => {
+        switch (type) {
+            case 'transaction':
+                return <CreditCard className="w-5 h-5 text-blue-400" />;
+            case 'security':
+                return <Shield className="w-5 h-5 text-red-400" />;
+            case 'kyc':
+                return <CheckCircle className="w-5 h-5 text-green-400" />;
+            default:
+                return <Bell className="w-5 h-5 text-slate-400" />;
+        }
+    };
+
+    const filteredNotifications = filter === 'all'
+        ? notifications
+        : notifications.filter(n => n.type === filter);
+
+    const unreadCount = notifications.filter(n => !n.read_at).length;
+
+    return (
+        <DashboardShell>
+            <div className="p-8">
+                <div className="mb-8 flex items-center justify-between">
+                    <div>
+                        <h1 className="text-3xl font-bold text-white">Notifications</h1>
+                        <p className="text-slate-400 mt-2">
+                            {unreadCount > 0 ? `${unreadCount} unread notification${unreadCount > 1 ? 's' : ''}` : 'All caught up!'}
+                        </p>
+                    </div>
+                    <Button variant="secondary" onClick={() => setNotifications(notifications.map(n => ({ ...n, read_at: new Date().toISOString() })))}>
+                        Mark All as Read
+                    </Button>
+                </div>
+
+                {/* Filters */}
+                <div className="flex gap-3 mb-6">
+                    {['all', 'transaction', 'security', 'kyc', 'system'].map((filterType) => (
+                        <button
+                            key={filterType}
+                            onClick={() => setFilter(filterType)}
+                            className={`px-4 py-2 rounded-lg font-medium transition-all ${filter === filterType
+                                    ? 'bg-blue-600 text-white'
+                                    : 'bg-slate-800 text-slate-400 hover:text-white'
+                                }`}
+                        >
+                            {filterType.charAt(0).toUpperCase() + filterType.slice(1)}
+                        </button>
+                    ))}
+                </div>
+
+                {/* Notifications List */}
+                <div className="space-y-3">
+                    {loading ? (
+                        <div className="text-center py-12 text-slate-400">Loading notifications...</div>
+                    ) : filteredNotifications.length === 0 ? (
+                        <div className="text-center py-12 bg-slate-800/50 rounded-xl border border-slate-700">
+                            <Bell className="w-12 h-12 text-slate-600 mx-auto mb-3" />
+                            <p className="text-slate-400">No notifications</p>
+                        </div>
+                    ) : (
+                        filteredNotifications.map((notification) => (
+                            <div
+                                key={notification.id}
+                                className={`p-4 rounded-xl border transition-all ${notification.read_at
+                                        ? 'bg-slate-800/30 border-slate-700'
+                                        : 'bg-blue-900/10 border-blue-700/50'
+                                    }`}
+                            >
+                                <div className="flex items-start gap-4">
+                                    <div className={`p-2 rounded-lg ${notification.read_at ? 'bg-slate-700' : 'bg-blue-600/20'}`}>
+                                        {getIcon(notification.type)}
+                                    </div>
+                                    <div className="flex-1">
+                                        <div className="flex items-start justify-between mb-1">
+                                            <h3 className="font-medium text-white">{notification.title}</h3>
+                                            <div className="flex gap-2">
+                                                {!notification.read_at && (
+                                                    <button
+                                                        onClick={() => markAsRead(notification.id)}
+                                                        className="text-xs text-blue-400 hover:text-blue-300"
+                                                    >
+                                                        Mark as read
+                                                    </button>
+                                                )}
+                                                <button
+                                                    onClick={() => deleteNotification(notification.id)}
+                                                    className="text-slate-400 hover:text-red-400"
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <p className="text-slate-400 text-sm mb-2">{notification.message}</p>
+                                        <p className="text-xs text-slate-500">
+                                            {new Date(notification.created_at).toLocaleString()}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        ))
+                    )}
+                </div>
+            </div>
+        </DashboardShell>
+    );
+}
