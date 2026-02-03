@@ -1,5 +1,6 @@
 const express = require('express');
 const { authenticateToken } = require('../middleware/auth');
+const { authenticateApiKey, apiKeyRateLimit } = require('../middleware/apiKeyAuth');
 const asyncHandler = require('../utils/asyncHandler');
 const { csrfProtection } = require('../middleware/csrfProtection');
 
@@ -9,7 +10,7 @@ const router = express.Router();
 router.post('/auth/login', csrfProtection, asyncHandler(async (req, res) => {
   const { email, password } = req.body;
   const user = await req.sharedService.authenticateUser(email, password);
-  
+
   const jwt = require('jsonwebtoken');
   const token = jwt.sign(
     { userId: user.id, email: user.email, accountType: user.accountType },
@@ -31,8 +32,8 @@ router.post('/auth/login', csrfProtection, asyncHandler(async (req, res) => {
   });
 }));
 
-// Transaction history (requires auth)
-router.get('/transactions', authenticateToken, asyncHandler(async (req, res) => {
+// Transaction history (requires auth - supports both JWT and API key)
+router.get('/transactions', authenticateApiKey, apiKeyRateLimit, authenticateToken, asyncHandler(async (req, res) => {
   const transactions = await req.sharedService.getTransactionHistory(
     req.user.id,
     req.user.accountType,
@@ -41,8 +42,8 @@ router.get('/transactions', authenticateToken, asyncHandler(async (req, res) => 
   res.json({ success: true, transactions });
 }));
 
-// Analytics (requires auth)
-router.get('/analytics', authenticateToken, asyncHandler(async (req, res) => {
+// Analytics (requires auth - supports both JWT and API key)
+router.get('/analytics', authenticateApiKey, apiKeyRateLimit, authenticateToken, asyncHandler(async (req, res) => {
   const analytics = await req.sharedService.getTransactionAnalytics(
     req.user.id,
     req.user.accountType,

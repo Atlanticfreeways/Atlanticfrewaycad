@@ -1,10 +1,14 @@
 const express = require('express');
 const { authenticate } = require('../../middleware/authenticate');
+const { authenticateApiKey, apiKeyRateLimit } = require('../../middleware/apiKeyAuth');
 const asyncHandler = require('../../utils/asyncHandler');
 const Joi = require('joi');
 
 const router = express.Router();
 
+// Apply API key authentication first, then fall back to JWT
+router.use(authenticateApiKey);
+router.use(apiKeyRateLimit);
 router.use(authenticate);
 
 /**
