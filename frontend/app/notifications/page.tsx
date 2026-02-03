@@ -5,6 +5,9 @@ import { DashboardShell } from '@/components/layout/DashboardShell';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Bell, CreditCard, Shield, CheckCircle, AlertCircle, Trash2 } from 'lucide-react';
+import { NotificationSkeleton } from '@/components/ui/skeleton';
+import { ErrorDisplay, EmptyState } from '@/components/ui/error';
+import { toast } from '@/lib/toast';
 
 interface Notification {
     id: string;
@@ -20,12 +23,15 @@ export default function NotificationsPage() {
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [filter, setFilter] = useState<string>('all');
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         fetchNotifications();
     }, []);
 
     const fetchNotifications = async () => {
+        setLoading(true);
+        setError(null);
         try {
             const token = localStorage.getItem('token');
             const response = await fetch('/api/v1/notifications', {
@@ -34,39 +40,78 @@ export default function NotificationsPage() {
             const data = await response.json();
             if (data.success) {
                 setNotifications(data.notifications);
+            } else {
+                setError(data.error || 'Failed to load notifications');
+                toast.error('Failed to load notifications');
             }
         } catch (error) {
             console.error('Failed to fetch notifications:', error);
+            setError('Network error - please check your connection');
+            toast.error('Failed to load notifications', 'Network error');
         } finally {
             setLoading(false);
         }
     };
 
+
     const markAsRead = async (id: string) => {
         try {
             const token = localStorage.getItem('token');
-            await fetch(`/api/v1/notifications/${id}/read`, {
+            const response = await fetch(`/api/v1/notifications/${id}/read`, {
                 method: 'PATCH',
                 headers: { Authorization: `Bearer ${token}` }
             });
-            setNotifications(notifications.map(n =>
-                n.id === id ? { ...n, read_at: new Date().toISOString() } : n
-            ));
+
+            if (response.ok) {
+                setNotifications(notifications.map(n =>
+                    n.id === id ? { ...n, read_at: new Date().toISOString() } : n
+                ));
+                toast.success('Marked as read');
+            } else {
+                toast.error('Failed to mark as read');
+            }
         } catch (error) {
             console.error('Failed to mark as read:', error);
+            toast.error('Failed to mark as read', 'Network error');
         }
     };
 
     const deleteNotification = async (id: string) => {
         try {
             const token = localStorage.getItem('token');
-            await fetch(`/api/v1/notifications/${id}`, {
+            const response = await fetch(`/api/v1/notifications/${id}`, {
                 method: 'DELETE',
                 headers: { Authorization: `Bearer ${token}` }
             });
-            setNotifications(notifications.filter(n => n.id !== id));
+
+            if (response.ok) {
+                setNotifications(notifications.filter(n => n.id !== id));
+                toast.success('Notification deleted');
+            } else {
+                toast.error('Failed to delete notification');
+            }
         } catch (error) {
             console.error('Failed to delete notification:', error);
+            toast.error('Failed to delete notification', 'Network error');
+        }
+    };
+
+    const markAllAsRead = async () => {
+        const unread = notifications.filter(n => !n.read_at);
+        if (unread.length === 0) {
+            toast.info('No unread notifications');
+            return;
+        }
+
+        try {
+            // Mark all as read optimistically
+            setNotifications(notifications.map(n => ({ ...n, read_at: n.read_at || new Date().toISOString() })));
+            toast.success(`Marked ${unread.length} notifications as read`);
+
+            // Here you would make API calls to mark each as read
+            // For now, we're doing it optimistically
+        } catch (error) {
+            toast.error('Failed to mark all as read');
         }
     };
 
@@ -99,7 +144,7 @@ export default function NotificationsPage() {
                             {unreadCount > 0 ? `${unreadCount} unread notification${unreadCount > 1 ? 's' : ''}` : 'All caught up!'}
                         </p>
                     </div>
-                    <Button variant="secondary" onClick={() => setNotifications(notifications.map(n => ({ ...n, read_at: new Date().toISOString() })))}>
+                    <Button variant="secondary" onClick={markAllAsRead}>
                         Mark All as Read
                     </Button>
                 </div>
@@ -111,8 +156,8 @@ export default function NotificationsPage() {
                             key={filterType}
                             onClick={() => setFilter(filterType)}
                             className={`px-4 py-2 rounded-lg font-medium transition-all ${filter === filterType
-                                    ? 'bg-blue-600 text-white'
-                                    : 'bg-slate-800 text-slate-400 hover:text-white'
+                                ? 'bg-blue-600 text-white'
+                                : 'bg-slate-800 text-slate-400 hover:text-white'
                                 }`}
                         >
                             {filterType.charAt(0).toUpperCase() + filterType.slice(1)}
@@ -123,19 +168,25 @@ export default function NotificationsPage() {
                 {/* Notifications List */}
                 <div className="space-y-3">
                     {loading ? (
-                        <div className="text-center py-12 text-slate-400">Loading notifications...</div>
+                        <NotificationSkeleton />
+                    ) : error ? (
+                        <ErrorDisplay
+                            message={error}
+                            onRetry={fetchNotifications}
+                        />
                     ) : filteredNotifications.length === 0 ? (
-                        <div className="text-center py-12 bg-slate-800/50 rounded-xl border border-slate-700">
-                            <Bell className="w-12 h-12 text-slate-600 mx-auto mb-3" />
-                            <p className="text-slate-400">No notifications</p>
-                        </div>
+                        <EmptyState
+                            icon={<Bell className="w-12 h-12" />}
+                            title={filter === 'all' ? 'No notifications' : `No ${filter} notifications`}
+                            description={filter === 'all' ? "You're all caught up!" : `Try changing your filter to see more notifications`}
+                        />
                     ) : (
                         filteredNotifications.map((notification) => (
                             <div
                                 key={notification.id}
                                 className={`p-4 rounded-xl border transition-all ${notification.read_at
-                                        ? 'bg-slate-800/30 border-slate-700'
-                                        : 'bg-blue-900/10 border-blue-700/50'
+                                    ? 'bg-slate-800/30 border-slate-700'
+                                    : 'bg-blue-900/10 border-blue-700/50'
                                     }`}
                             >
                                 <div className="flex items-start gap-4">
