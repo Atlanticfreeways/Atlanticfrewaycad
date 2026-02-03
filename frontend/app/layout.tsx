@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { CurrencyProvider } from '@/lib/contexts/CurrencyContext';
 import { AuthProvider } from '@/contexts/AuthContext';
+import { Toaster } from 'sonner';
 
 export default function RootLayout({
   children,
@@ -26,6 +27,7 @@ export default function RootLayout({
           <AuthProvider>
             <CurrencyProvider>
               {children}
+              <Toaster position="top-right" richColors />
             </CurrencyProvider>
           </AuthProvider>
         </QueryClientProvider>

@@ -5,6 +5,8 @@ import { DashboardShell } from '@/components/layout/DashboardShell';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { User, Lock, Bell, Shield, Key, Download } from 'lucide-react';
+import { toast } from '@/lib/toast';
+import { changePassword } from '@/lib/password';
 
 export default function SettingsPage() {
     const [activeTab, setActiveTab] = useState('account');
@@ -14,6 +16,12 @@ export default function SettingsPage() {
         phone: '',
     });
     const [loading, setLoading] = useState(false);
+    const [passwordData, setPasswordData] = useState({
+        current: '',
+        new: '',
+        confirm: '',
+    });
+    const [changingPassword, setChangingPassword] = useState(false);
 
     useEffect(() => {
         // Fetch user data
@@ -33,6 +41,7 @@ export default function SettingsPage() {
                 }
             } catch (error) {
                 console.error('Failed to fetch user data:', error);
+                toast.error('Failed to load profile');
             }
         };
         fetchUserData();
@@ -48,6 +57,8 @@ export default function SettingsPage() {
 
     const handleSave = async () => {
         setLoading(true);
+        const loadingToast = toast.loading('Saving changes...');
+
         try {
             const token = localStorage.getItem('token');
             const response = await fetch('/api/v1/users/profile', {
@@ -62,14 +73,46 @@ export default function SettingsPage() {
                 })
             });
 
-            if (response.ok) {
-                alert('Settings saved successfully');
+            const data = await response.json();
+
+            if (response.ok && data.success) {
+                toast.success('Settings saved successfully');
+            } else {
+                toast.error('Failed to save settings', data.error || 'Unknown error');
             }
         } catch (error) {
             console.error('Failed to save settings:', error);
-            alert('Failed to save settings');
+            toast.error('Failed to save settings', 'Network error');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handlePasswordChange = async () => {
+        if (!passwordData.current || !passwordData.new || !passwordData.confirm) {
+            toast.error('Please fill in all password fields');
+            return;
+        }
+
+        setChangingPassword(true);
+
+        try {
+            const result = await changePassword({
+                currentPassword: passwordData.current,
+                newPassword: passwordData.new,
+                confirmPassword: passwordData.confirm,
+            });
+
+            if (result.success) {
+                toast.success('Password changed successfully');
+                setPasswordData({ current: '', new: '', confirm: '' });
+            } else {
+                toast.error('Failed to change password', result.error);
+            }
+        } catch (error) {
+            toast.error('Failed to change password', 'Network error');
+        } finally {
+            setChangingPassword(false);
         }
     };
 
@@ -91,8 +134,8 @@ export default function SettingsPage() {
                                     key={tab.id}
                                     onClick={() => setActiveTab(tab.id)}
                                     className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all ${activeTab === tab.id
-                                            ? 'bg-blue-600/10 text-blue-400'
-                                            : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                                        ? 'bg-blue-600/10 text-blue-400'
+                                        : 'text-slate-400 hover:text-white hover:bg-slate-800'
                                         }`}
                                 >
                                     <Icon className="w-5 h-5" />
@@ -156,7 +199,53 @@ export default function SettingsPage() {
                                         <div className="p-4 bg-slate-900/50 rounded-lg border border-slate-700">
                                             <h3 className="font-medium text-white mb-2">Change Password</h3>
                                             <p className="text-sm text-slate-400 mb-4">Update your password regularly to keep your account secure</p>
-                                            <Button variant="secondary">Change Password</Button>
+
+                                            <div className="space-y-3 mb-4">
+                                                <div>
+                                                    <Label htmlFor="current-password" className="text-slate-300">Current Password</Label>
+                                                    <input
+                                                        id="current-password"
+                                                        type="password"
+                                                        value={passwordData.current}
+                                                        onChange={(e) => setPasswordData({ ...passwordData, current: e.target.value })}
+                                                        className="mt-1 w-full px-4 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                        placeholder="Enter current password"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <Label htmlFor="new-password" className="text-slate-300">New Password</Label>
+                                                    <input
+                                                        id="new-password"
+                                                        type="password"
+                                                        value={passwordData.new}
+                                                        onChange={(e) => setPasswordData({ ...passwordData, new: e.target.value })}
+                                                        className="mt-1 w-full px-4 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                        placeholder="Enter new password"
+                                                    />
+                                                    <p className="text-xs text-slate-500 mt-1">
+                                                        Must be 8+ characters with uppercase, lowercase, number, and special character
+                                                    </p>
+                                                </div>
+                                                <div>
+                                                    <Label htmlFor="confirm-password" className="text-slate-300">Confirm New Password</Label>
+                                                    <input
+                                                        id="confirm-password"
+                                                        type="password"
+                                                        value={passwordData.confirm}
+                                                        onChange={(e) => setPasswordData({ ...passwordData, confirm: e.target.value })}
+                                                        className="mt-1 w-full px-4 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                        placeholder="Confirm new password"
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <Button
+                                                onClick={handlePasswordChange}
+                                                disabled={changingPassword}
+                                                variant="secondary"
+                                            >
+                                                {changingPassword ? 'Changing Password...' : 'Change Password'}
+                                            </Button>
                                         </div>
                                         <div className="p-4 bg-slate-900/50 rounded-lg border border-slate-700">
                                             <h3 className="font-medium text-white mb-2">Two-Factor Authentication</h3>
