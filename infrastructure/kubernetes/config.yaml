@@ -1,0 +1,92 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: atlanticfrewaycard-config
+  namespace: production
+data:
+  NODE_ENV: "production"
+  LOG_LEVEL: "info"
+  RATE_LIMIT_WINDOW: "15m"
+  RATE_LIMIT_MAX_REQUESTS: "100"
+  BCRYPT_ROUNDS: "12"
+  JWT_EXPIRY: "15m"
+  JWT_REFRESH_EXPIRY: "7d"
+  ALLOWED_ORIGINS: "https://atlanticfrewaycard.com,https://app.atlanticfrewaycard.com"
+  MARQETA_BASE_URL: "https://api.marqeta.com/v3"
+  USE_GO_JIT: "true"
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: production
+  labels:
+    name: production
+    environment: production
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: atlanticfrewaycard-api
+  namespace: production
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::ACCOUNT_ID:role/atlanticfrewaycard-api-role
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: atlanticfrewaycard-jit
+  namespace: production
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::ACCOUNT_ID:role/atlanticfrewaycard-jit-role
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: atlanticfrewaycard-ingress
+  namespace: production
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/rate-limit: "100"
+spec:
+  tls:
+  - hosts:
+    - api.atlanticfrewaycard.com
+    secretName: atlanticfrewaycard-tls
+  rules:
+  - host: api.atlanticfrewaycard.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: atlanticfrewaycard-api
+            port:
+              number: 80
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: atlanticfrewaycard-api-pdb
+  namespace: production
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: atlanticfrewaycard
+      component: api
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: jit-funding-service-pdb
+  namespace: production
+spec:
+  minAvailable: 3
+  selector:
+    matchLabels:
+      app: atlanticfrewaycard
+      component: jit-service
