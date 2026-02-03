@@ -29,6 +29,7 @@ router.use('/compliance', require('./compliance'));
 router.use('/users/profile', require('./users/profile')); // NEW: User profile
 router.use('/users/privacy', require('./users/privacy')); // NEW: GDPR privacy
 router.use('/users', require('./users/password')); // NEW: Password change
+router.use('/users', require('./users/apiKeys')); // NEW: API key management
 
 // Notifications
 router.use('/notifications', require('./notifications')); // NEW: Notifications center
