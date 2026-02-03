@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { User, Lock, Bell, Shield, Key, Download } from 'lucide-react';
 import { toast } from '@/lib/toast';
 import { changePassword } from '@/lib/password';
+import { profileSchema, passwordSchema, apiKeySchema, validateForm } from '@/lib/validation';
 
 export default function SettingsPage() {
     const [activeTab, setActiveTab] = useState('account');
@@ -22,6 +23,7 @@ export default function SettingsPage() {
         confirm: '',
     });
     const [changingPassword, setChangingPassword] = useState(false);
+    const [passwordErrors, setPasswordErrors] = useState<Record<string, string>>({});
 
     useEffect(() => {
         // Fetch user data
@@ -89,11 +91,20 @@ export default function SettingsPage() {
     };
 
     const handlePasswordChange = async () => {
-        if (!passwordData.current || !passwordData.new || !passwordData.confirm) {
-            toast.error('Please fill in all password fields');
+        // Validate password data
+        const validation = validateForm(passwordSchema, {
+            currentPassword: passwordData.current,
+            newPassword: passwordData.new,
+            confirmPassword: passwordData.confirm,
+        });
+
+        if (!validation.success) {
+            setPasswordErrors(validation.errors);
+            toast.error('Please fix the errors in the form');
             return;
         }
 
+        setPasswordErrors({});
         setChangingPassword(true);
 
         try {
@@ -143,8 +154,14 @@ export default function SettingsPage() {
     };
 
     const generateApiKey = async () => {
-        if (!newKeyData.name) {
-            toast.error('Please enter a name for the API key');
+        // Validate API key data
+        const validation = validateForm(apiKeySchema, {
+            name: newKeyData.name,
+            expiresIn: newKeyData.expires_days,
+        });
+
+        if (!validation.success) {
+            toast.error(Object.values(validation.errors)[0] || 'Please fix the errors');
             return;
         }
 
@@ -304,10 +321,16 @@ export default function SettingsPage() {
                                                         id="current-password"
                                                         type="password"
                                                         value={passwordData.current}
-                                                        onChange={(e) => setPasswordData({ ...passwordData, current: e.target.value })}
-                                                        className="mt-1 w-full px-4 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                        onChange={(e) => {
+                                                            setPasswordData({ ...passwordData, current: e.target.value });
+                                                            setPasswordErrors({ ...passwordErrors, currentPassword: '' });
+                                                        }}
+                                                        className={`mt-1 w-full px-4 py-2 bg-slate-900 border ${passwordErrors.currentPassword ? 'border-red-500' : 'border-slate-700'} rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500`}
                                                         placeholder="Enter current password"
                                                     />
+                                                    {passwordErrors.currentPassword && (
+                                                        <p className="text-xs text-red-400 mt-1">{passwordErrors.currentPassword}</p>
+                                                    )}
                                                 </div>
                                                 <div>
                                                     <Label htmlFor="new-password" className="text-slate-300">New Password</Label>
@@ -315,13 +338,20 @@ export default function SettingsPage() {
                                                         id="new-password"
                                                         type="password"
                                                         value={passwordData.new}
-                                                        onChange={(e) => setPasswordData({ ...passwordData, new: e.target.value })}
-                                                        className="mt-1 w-full px-4 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                        onChange={(e) => {
+                                                            setPasswordData({ ...passwordData, new: e.target.value });
+                                                            setPasswordErrors({ ...passwordErrors, newPassword: '' });
+                                                        }}
+                                                        className={`mt-1 w-full px-4 py-2 bg-slate-900 border ${passwordErrors.newPassword ? 'border-red-500' : 'border-slate-700'} rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500`}
                                                         placeholder="Enter new password"
                                                     />
-                                                    <p className="text-xs text-slate-500 mt-1">
-                                                        Must be 8+ characters with uppercase, lowercase, number, and special character
-                                                    </p>
+                                                    {passwordErrors.newPassword ? (
+                                                        <p className="text-xs text-red-400 mt-1">{passwordErrors.newPassword}</p>
+                                                    ) : (
+                                                        <p className="text-xs text-slate-500 mt-1">
+                                                            Must be 8+ characters with uppercase, lowercase, number, and special character
+                                                        </p>
+                                                    )}
                                                 </div>
                                                 <div>
                                                     <Label htmlFor="confirm-password" className="text-slate-300">Confirm New Password</Label>
@@ -329,10 +359,16 @@ export default function SettingsPage() {
                                                         id="confirm-password"
                                                         type="password"
                                                         value={passwordData.confirm}
-                                                        onChange={(e) => setPasswordData({ ...passwordData, confirm: e.target.value })}
-                                                        className="mt-1 w-full px-4 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                        onChange={(e) => {
+                                                            setPasswordData({ ...passwordData, confirm: e.target.value });
+                                                            setPasswordErrors({ ...passwordErrors, confirmPassword: '' });
+                                                        }}
+                                                        className={`mt-1 w-full px-4 py-2 bg-slate-900 border ${passwordErrors.confirmPassword ? 'border-red-500' : 'border-slate-700'} rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500`}
                                                         placeholder="Confirm new password"
                                                     />
+                                                    {passwordErrors.confirmPassword && (
+                                                        <p className="text-xs text-red-400 mt-1">{passwordErrors.confirmPassword}</p>
+                                                    )}
                                                 </div>
                                             </div>
 
