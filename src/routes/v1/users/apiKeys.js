@@ -1,6 +1,6 @@
 const express = require('express');
 const crypto = require('crypto');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 const { authenticate } = require('../../../middleware/authenticate');
 const { csrfProtection } = require('../../../middleware/csrfProtection');
 const asyncHandler = require('../../../utils/asyncHandler');

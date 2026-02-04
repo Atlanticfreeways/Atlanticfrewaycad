@@ -46,7 +46,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         api.setToken(token);
         setUser(userData);
         localStorage.setItem('user', JSON.stringify(userData));
-        router.push('/');
+        router.push('/dashboard');
     };
 
     const logout = () => {

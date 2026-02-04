@@ -5,9 +5,9 @@ export function middleware(request: NextRequest) {
     const path = request.nextUrl.pathname;
 
     // Define public paths that don't require authentication
-    const isPublicPath = path === '/auth/login' || path === '/auth/register';
+    const isPublicPath = path === '/login' || path === '/register' || path === '/';
 
-    // Check for auth token (this is a simplified check, in production use proper validation)
+    // Check for auth token 
     // Since we are using client-side zustand persist for now, 
     // server-side middleware has limited visibility into local storage.
     // Ideally, we would use cookies for auth tokens.

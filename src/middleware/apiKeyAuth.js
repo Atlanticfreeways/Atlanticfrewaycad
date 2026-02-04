@@ -1,4 +1,4 @@
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 const pool = require('../config/database');
 
 /**
@@ -16,14 +16,17 @@ async function authenticateApiKey(req, res, next) {
         }
 
         // Validate key format
-        if (!apiKey.startsWith('afc_') || apiKey.length < 20) {
+        const isSandboxKey = apiKey.startsWith('sbk_');
+        const isLiveKey = apiKey.startsWith('afc_');
+
+        if (!isSandboxKey && !isLiveKey) {
             return res.status(401).json({
                 success: false,
                 error: 'Invalid API key format'
             });
         }
 
-        // Find all API keys from database (we need to compare hashes)
+        // Find all API keys from database
         const keysResult = await pool.query(`
             SELECT 
                 k.id,
@@ -32,6 +35,7 @@ async function authenticateApiKey(req, res, next) {
                 k.name,
                 k.expires_at,
                 k.revoked_at,
+                k.environment,
                 u.email,
                 u.full_name,
                 u.role,
@@ -78,7 +82,7 @@ async function authenticateApiKey(req, res, next) {
         // Update last_used_at timestamp (async, don't wait)
         pool.query(`
             UPDATE user_api_keys 
-            SET last_used_at = NOW()
+            SET last_used_at = NOW() 
             WHERE id = $1
         `, [matchedKey.id]).catch(err => {
             console.error('Failed to update API key last_used_at:', err);
@@ -113,7 +117,9 @@ async function authenticateApiKey(req, res, next) {
             role: matchedKey.role,
             authMethod: 'api_key',
             apiKeyId: matchedKey.id,
-            apiKeyName: matchedKey.name
+            apiKeyName: matchedKey.name,
+            environment: matchedKey.environment,
+            isSandbox: matchedKey.environment === 'sandbox'
         };
 
         // Continue to route handler

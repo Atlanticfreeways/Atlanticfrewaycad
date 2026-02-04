@@ -15,4 +15,7 @@ router.use('/paystack', require('./webhooks/paystack'));
 // NOWPayments Webhooks
 router.use('/nowpayments', require('./webhooks/nowpayments'));
 
+// KYC Webhooks (Onfido/Sumsub)
+router.use('/kyc', require('./webhooks/kyc'));
+
 module.exports = router;

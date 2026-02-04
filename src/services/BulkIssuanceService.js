@@ -3,12 +3,10 @@ const logger = require('../utils/logger');
 const { v4: uuidv4 } = require('uuid');
 
 class BulkIssuanceService {
-    constructor(repositories, services) {
+    constructor(repositories, services = {}) {
         this.userRepo = repositories.user;
         this.cardRepo = repositories.card;
-        // Accessing Marqeta adapter from services might need adjustment depending on initialization
-        // Assuming we can use a direct CardService or Client if available, 
-        // or we reuse the Logic for Card Creation from BusinessService
+        this.compliance = services.compliance;
         this.pool = repositories.user.pool;
     }
 
@@ -64,6 +62,22 @@ class BulkIssuanceService {
             throw new Error('Missing email or name');
         }
 
+        // Phase 2: Compliance Check
+        if (this.compliance) {
+            // Note: For bulk issuance, if the user doesn't exist yet, we can't check KYC status
+            // This is a business decision: Pre-provision but only activate after KYC?
+            // Or only allow bulk issuance for already verified users?
+            // For this implementation, we'll try to find the user first.
+            const existingUser = await this.userRepo.findByEmail(email);
+            if (existingUser) {
+                await this.compliance.checkComplianceForIssuance(existingUser.id);
+            } else {
+                // If new user, they MUST go through KYC before a REAL card is active
+                // For now, let's assume new users are 'pending'
+                logger.info(`New user ${email} provisioned via bulk. Card will be pending KYC.`);
+            }
+        }
+
         const client = await this.pool.connect();
         try {
             await client.query('BEGIN');
@@ -77,10 +91,10 @@ class BulkIssuanceService {
             } else {
                 // Provision new user
                 const newUser = await client.query(
-                    `INSERT INTO users (id, email, full_name, role, account_type, company_id, password_hash, email_verified, kyc_status)
-                     VALUES ($1, $2, $3, $4, 'business', $5, 'temp_hash_placeholder', true, 'verified')
+                    `INSERT INTO users (id, email, first_name, last_name, role, account_type, company_id, password_hash, email_verified, kyc_status)
+                     VALUES ($1, $2, $3, $4, $5, 'business', $6, 'temp_hash_placeholder', true, 'pending')
                      RETURNING id`,
-                    [uuidv4(), email, name, role || 'employee', companyId]
+                    [uuidv4(), email, name.split(' ')[0], name.split(' ')[1] || '', role || 'employee', companyId]
                 );
                 userId = newUser.rows[0].id;
                 // Ideally trigger password reset email here

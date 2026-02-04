@@ -16,4 +16,34 @@ body {
   .glass-panel {
     @apply bg-slate-900/50 backdrop-blur-md border border-slate-800/50;
   }
+
+  .glass-card {
+    @apply bg-slate-900/40 backdrop-blur-xl border border-slate-800/40 shadow-2xl;
+  }
+
+  .glow-blue {
+    box-shadow: 0 0 20px rgba(37, 99, 235, 0.2);
+  }
+
+  .text-glow {
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+  }
+
+  .premium-gradient {
+    @apply bg-gradient-to-br from-blue-600 via-purple-600 to-slate-900;
+  }
+
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+}
+
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0px); }
+}
+
+::selection {
+  @apply bg-blue-500/30 text-blue-200;
 }

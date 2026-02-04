@@ -11,6 +11,9 @@ export default function LoginPage() {
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+    const [mfaRequired, setMfaRequired] = useState(false);
+    const [mfaCode, setMfaCode] = useState('');
+    const [mfaToken, setMfaToken] = useState('');
     const { login } = useAuth();
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -19,13 +22,29 @@ export default function LoginPage() {
         setError('');
 
         try {
-            const res = await api.post<{ success: boolean; user: any; tokens: { accessToken: string } }>('/auth/login', {
-                email,
-                password
-            });
+            if (mfaRequired) {
+                // Secondary MFA Verification
+                const res = await api.post<{ success: boolean; user: any; tokens: { accessToken: string } }>('/auth/mfa/verify', {
+                    code: mfaCode,
+                    mfaToken
+                });
 
-            if (res.success) {
-                login(res.tokens.accessToken, res.user);
+                if (res.success) {
+                    login(res.tokens.accessToken, res.user);
+                }
+            } else {
+                // Initial Login
+                const res = await api.post<{ success: boolean; user?: any; tokens?: { accessToken: string }; mfaRequired?: boolean; mfaToken?: string }>('/auth/login', {
+                    email,
+                    password
+                });
+
+                if (res.mfaRequired && res.mfaToken) {
+                    setMfaRequired(true);
+                    setMfaToken(res.mfaToken);
+                } else if (res.success && res.tokens) {
+                    login(res.tokens.accessToken, res.user);
+                }
             }
         } catch (err: any) {
             setError(err.message || 'Login failed');
@@ -53,28 +72,48 @@ export default function LoginPage() {
                     )}
 
                     <div className="space-y-4">
-                        <div>
-                            <label htmlFor="email" className="block text-sm font-medium text-slate-300">Email address</label>
-                            <input
-                                id="email"
-                                type="email"
-                                required
-                                className="mt-1 block w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                            />
-                        </div>
-                        <div>
-                            <label htmlFor="password" className="block text-sm font-medium text-slate-300">Password</label>
-                            <input
-                                id="password"
-                                type="password"
-                                required
-                                className="mt-1 block w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                            />
-                        </div>
+                        {!mfaRequired ? (
+                            <>
+                                <div>
+                                    <label htmlFor="email" className="block text-sm font-medium text-slate-300">Email address</label>
+                                    <input
+                                        id="email"
+                                        type="email"
+                                        required
+                                        className="mt-1 block w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
+                                    />
+                                </div>
+                                <div>
+                                    <label htmlFor="password" className="block text-sm font-medium text-slate-300">Password</label>
+                                    <input
+                                        id="password"
+                                        type="password"
+                                        required
+                                        className="mt-1 block w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                    />
+                                </div>
+                            </>
+                        ) : (
+                            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                <label htmlFor="mfaCode" className="block text-sm font-medium text-slate-300">2FA Verification Code</label>
+                                <p className="text-xs text-slate-500 mb-2">Please enter the 6-digit code from your authenticator app</p>
+                                <input
+                                    id="mfaCode"
+                                    type="text"
+                                    inputMode="numeric"
+                                    autoComplete="one-time-code"
+                                    required
+                                    placeholder="000000"
+                                    className="mt-1 block w-full px-3 py-3 bg-slate-950 border border-slate-800 rounded-lg text-white text-center text-2xl tracking-[0.5em] font-bold focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                    value={mfaCode}
+                                    onChange={(e) => setMfaCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                                />
+                            </div>
+                        )}
                     </div>
 
                     <button

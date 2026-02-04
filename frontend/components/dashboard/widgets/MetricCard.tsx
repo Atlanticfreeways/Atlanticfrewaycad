@@ -1,6 +1,9 @@
+"use client";
+
 import { LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { ArrowUp, ArrowDown } from 'lucide-react';
+import { ArrowUp, ArrowDown, TrendingUp } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 interface MetricCardProps {
     title: string;
@@ -16,17 +19,17 @@ interface MetricCardProps {
 }
 
 const variants = {
-    default: 'bg-white border-slate-200',
-    primary: 'bg-primary-50 border-primary-100',
-    success: 'bg-green-50 border-green-100',
-    warning: 'bg-amber-50 border-amber-100',
+    default: 'border-white/5 bg-slate-900/40',
+    primary: 'border-blue-500/20 bg-blue-500/5',
+    success: 'border-green-500/20 bg-green-500/5',
+    warning: 'border-amber-500/20 bg-amber-500/5',
 };
 
-const iconVariants = {
-    default: 'bg-slate-100 text-slate-600',
-    primary: 'bg-primary-100 text-primary-600',
-    success: 'bg-green-100 text-green-600',
-    warning: 'bg-amber-100 text-amber-600',
+const iconColors = {
+    default: 'text-slate-400 bg-slate-400/10',
+    primary: 'text-blue-500 bg-blue-500/10',
+    success: 'text-green-500 bg-green-500/10',
+    warning: 'text-amber-500 bg-amber-500/10',
 };
 
 export function MetricCard({
@@ -38,41 +41,49 @@ export function MetricCard({
     className,
 }: MetricCardProps) {
     return (
-        <div
+        <motion.div
+            whileHover={{ y: -5 }}
             className={cn(
-                'rounded-xl border p-6 shadow-sm transition-all hover:shadow-md',
+                'rounded-[2rem] border p-8 backdrop-blur-xl transition-all duration-300 relative overflow-hidden group',
                 variants[variant],
                 className
             )}
         >
-            <div className="flex items-start justify-between">
-                <div>
-                    <p className="text-sm font-medium text-slate-500">{title}</p>
-                    <h3 className="mt-2 text-3xl font-bold text-slate-900">{value}</h3>
+            {/* Ambient Glow */}
+            <div className={cn(
+                "absolute -top-12 -right-12 w-24 h-24 blur-[40px] rounded-full opacity-20 group-hover:opacity-40 transition-opacity duration-500",
+                variant === 'primary' ? 'bg-blue-500' :
+                    variant === 'success' ? 'bg-green-500' :
+                        variant === 'warning' ? 'bg-amber-500' : 'bg-slate-400'
+            )} />
+
+            <div className="flex items-start justify-between relative z-10">
+                <div className="space-y-4">
+                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">{title}</p>
+                    <h3 className="text-3xl font-black text-white tracking-tighter leading-none">{value}</h3>
                 </div>
-                <div className={cn('rounded-lg p-2', iconVariants[variant])}>
-                    <Icon className="h-5 w-5" />
+                <div className={cn('rounded-[1.25rem] p-3 shadow-inner', iconColors[variant])}>
+                    <Icon className="h-6 w-6" />
                 </div>
             </div>
+
             {change && (
-                <div className="mt-4 flex items-center text-sm">
-                    <span
-                        className={cn(
-                            'flex items-center font-medium',
-                            change.trend === 'up' ? 'text-green-600' :
-                                change.trend === 'down' ? 'text-red-600' : 'text-slate-600'
-                        )}
-                    >
+                <div className="mt-8 flex items-center relative z-10">
+                    <div className={cn(
+                        'flex items-center px-2 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider',
+                        change.trend === 'up' ? 'bg-green-500/10 text-green-500' :
+                            change.trend === 'down' ? 'bg-red-500/10 text-red-500' : 'bg-slate-500/10 text-slate-500'
+                    )}>
                         {change.trend === 'up' ? (
                             <ArrowUp className="mr-1 h-3 w-3" />
                         ) : change.trend === 'down' ? (
                             <ArrowDown className="mr-1 h-3 w-3" />
-                        ) : null}
+                        ) : <TrendingUp className="mr-1 h-3 w-3" />}
                         {change.value}
-                    </span>
-                    <span className="ml-2 text-slate-500">{change.label || 'vs last month'}</span>
+                    </div>
+                    <span className="ml-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest">{change.label || 'vs month'}</span>
                 </div>
             )}
-        </div>
+        </motion.div>
     );
 }

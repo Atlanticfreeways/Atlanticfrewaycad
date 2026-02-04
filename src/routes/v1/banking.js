@@ -24,7 +24,7 @@ router.get('/account', authMiddleware.authenticateToken, async (req, res) => {
 
 // POST /api/v1/banking/simulate-deposit (Admin/Dev Only)
 // Simulate an incoming payroll deposit
-router.post('/simulate-deposit', authMiddleware.authenticateToken, async (req, res) => {
+router.post('/simulate-deposit', authMiddleware.authenticateToken, require('../../middleware/IdempotencyMiddleware'), async (req, res) => {
     // strict check for admin or dev env
     if (req.user.role !== 'admin' && process.env.NODE_ENV === 'production') {
         return res.status(403).json({ error: 'Simulation not allowed in production without admin rights' });

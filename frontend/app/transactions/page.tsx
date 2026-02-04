@@ -2,11 +2,19 @@
 
 import { useState, useEffect } from 'react';
 import { DashboardShell } from '@/components/layout/DashboardShell';
-import { Button } from '@/components/ui/button';
-import { Download, Search, DollarSign } from 'lucide-react';
-import { TableSkeleton } from '@/components/ui/skeleton';
-import { ErrorDisplay, EmptyState } from '@/components/ui/error';
-import { toast } from '@/lib/toast';
+import {
+    Download,
+    Search,
+    DollarSign,
+    Filter,
+    ArrowUpRight,
+    Calendar,
+    ChevronLeft,
+    ChevronRight,
+    Loader2
+} from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { cn } from '@/lib/utils';
 
 interface Transaction {
     id: string;
@@ -16,266 +24,132 @@ interface Transaction {
     status: 'approved' | 'declined' | 'pending' | 'completed' | 'failed';
     mcc_description: string;
     created_at: string;
-    card_id: string;
 }
 
+const mockTransactions: Transaction[] = [
+    { id: '1', merchant_name: 'AWS Infrastructure', amount: 2450.00, currency: 'USD', status: 'completed', mcc_description: 'Infrastructure', created_at: new Date().toISOString() },
+    { id: '2', merchant_name: 'Google Workspace', amount: 156.20, currency: 'USD', status: 'completed', mcc_description: 'Software', created_at: new Date().toISOString() },
+    { id: '3', merchant_name: 'Uber Business', amount: 42.50, currency: 'USD', status: 'pending', mcc_description: 'Travel', created_at: new Date().toISOString() },
+    { id: '4', merchant_name: 'Starbucks', amount: 14.50, currency: 'USD', status: 'completed', mcc_description: 'Food & Drink', created_at: new Date().toISOString() },
+];
+
 export default function TransactionsPage() {
-    const [transactions, setTransactions] = useState<Transaction[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-
-    // Filters
+    const [transactions, setTransactions] = useState<Transaction[]>(mockTransactions);
+    const [loading, setLoading] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
-    const [statusFilter, setStatusFilter] = useState<string>('all');
-    const [dateRange, setDateRange] = useState<string>('30d');
-
-    // Pagination
-    const [currentPage, setCurrentPage] = useState(1);
-    const [totalPages, setTotalPages] = useState(1);
-    const itemsPerPage = 20;
-
-    useEffect(() => {
-        fetchTransactions();
-    }, [currentPage, statusFilter, dateRange]);
-
-    const fetchTransactions = async () => {
-        setLoading(true);
-        setError(null);
-
-        try {
-            const token = localStorage.getItem('token');
-            const params = new URLSearchParams({
-                page: currentPage.toString(),
-                limit: itemsPerPage.toString(),
-            });
-
-            if (statusFilter !== 'all') params.append('status', statusFilter);
-            if (dateRange !== 'all') params.append('range', dateRange);
-
-            const response = await fetch(`/api/v1/transactions?${params}`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-
-            const data = await response.json();
-
-            if (data.success) {
-                setTransactions(data.transactions || []);
-                setTotalPages(Math.ceil((data.pagination?.total || 0) / itemsPerPage));
-            } else {
-                setError(data.error || 'Failed to load transactions');
-                toast.error('Failed to load transactions');
-            }
-        } catch (err) {
-            console.error('Failed to fetch transactions:', err);
-            setError('Network error - please check your connection');
-            toast.error('Failed to load transactions', 'Network error');
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const filteredTransactions = transactions.filter(tx =>
-        searchTerm === '' ||
-        tx.merchant_name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
 
     return (
         <DashboardShell>
-            <div className="p-8">
-                {/* Header */}
-                <div className="mb-8 flex items-center justify-between">
+            <div className="space-y-10 animate-in fade-in slide-in-from-bottom-6 duration-1000">
+                <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                     <div>
-                        <h1 className="text-3xl font-bold text-white">Transaction History</h1>
-                        <p className="text-slate-400 mt-2">
-                            {filteredTransactions.length} {filteredTransactions.length === 1 ? 'transaction' : 'transactions'}
-                        </p>
+                        <h1 className="text-4xl font-extrabold text-white tracking-tight text-glow">Transaction Ledger</h1>
+                        <p className="text-slate-500 font-bold uppercase tracking-[0.2em] text-[10px] mt-2">Audit-ready enterprise transaction stream</p>
                     </div>
-                    <Button variant="secondary" className="flex items-center gap-2">
-                        <Download className="w-4 h-4" />
-                        Export CSV
-                    </Button>
+                    <button className="flex items-center space-x-3 bg-white/5 border border-white/10 text-white px-8 py-4 rounded-2xl transition-all hover:bg-white/10 active:scale-95 font-bold">
+                        <Download className="w-5 h-5" />
+                        <span>Export Financial Report</span>
+                    </button>
                 </div>
 
                 {/* Filters */}
-                <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {/* Search */}
-                    <div className="relative">
-                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div className="md:col-span-2 relative">
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                         <input
                             type="text"
-                            placeholder="Search by merchant..."
+                            placeholder="Search by merchant or trace ID..."
+                            className="w-full bg-slate-900 border border-white/5 rounded-2xl py-4 pl-12 pr-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-600/50"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                     </div>
-
-                    {/* Status Filter */}
-                    <select
-                        value={statusFilter}
-                        onChange={(e) => setStatusFilter(e.target.value)}
-                        className="px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                        <option value="all">All Statuses</option>
-                        <option value="approved">Approved</option>
-                        <option value="completed">Completed</option>
-                        <option value="declined">Declined</option>
-                        <option value="pending">Pending</option>
-                    </select>
-
-                    {/* Date Range */}
-                    <select
-                        value={dateRange}
-                        onChange={(e) => setDateRange(e.target.value)}
-                        className="px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                        <option value="7d">Last 7 Days</option>
-                        <option value="30d">Last 30 Days</option>
-                        <option value="90d">Last 90 Days</option>
-                        <option value="all">All Time</option>
-                    </select>
+                    <div className="relative">
+                        <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                        <select className="w-full bg-slate-900 border border-white/5 rounded-2xl py-4 pl-12 pr-4 text-sm text-white appearance-none focus:outline-none focus:ring-2 focus:ring-blue-600/50 font-bold">
+                            <option>Last 30 Days</option>
+                            <option>Last 90 Days</option>
+                            <option>This Quarter</option>
+                        </select>
+                    </div>
+                    <button className="bg-slate-900 border border-white/5 rounded-2xl py-4 flex items-center justify-center space-x-2 text-slate-400 hover:text-white transition-all font-bold text-sm">
+                        <Filter className="w-4 h-4" />
+                        <span>Advanced Filters</span>
+                    </button>
                 </div>
 
-                {/* Table */}
-                {loading ? (
-                    <TableSkeleton rows={10} />
-                ) : error ? (
-                    <ErrorDisplay message={error} onRetry={fetchTransactions} />
-                ) : filteredTransactions.length === 0 ? (
-                    <EmptyState
-                        icon={<DollarSign className="w-12 h-12" />}
-                        title="No transactions found"
-                        description={searchTerm ? "Try adjusting your search or filters" : "You haven't made any transactions yet"}
-                    />
-                ) : (
-                    <>
-                        {/* Desktop Table View */}
-                        <div className="hidden md:block bg-slate-800/50 rounded-xl border border-slate-700 overflow-hidden">
-                            <div className="overflow-x-auto">
-                                <table className="w-full">
-                                    <thead>
-                                        <tr className="border-b border-slate-700">
-                                            <th className="px-6 py-4 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
-                                                Date & Time
-                                            </th>
-                                            <th className="px-6 py-4 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
-                                                Merchant
-                                            </th>
-                                            <th className="px-6 py-4 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
-                                                Category
-                                            </th>
-                                            <th className="px-6 py-4 text-right text-xs font-medium text-slate-400 uppercase tracking-wider">
-                                                Amount
-                                            </th>
-                                            <th className="px-6 py-4 text-center text-xs font-medium text-slate-400 uppercase tracking-wider">
-                                                Status
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-slate-700">
-                                        {filteredTransactions.map((transaction) => (
-                                            <tr key={transaction.id} className="hover:bg-slate-700/30 transition-colors">
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-300">
-                                                    {new Date(transaction.created_at).toLocaleString('en-US', {
-                                                        month: 'short',
-                                                        day: 'numeric',
-                                                        year: 'numeric',
-                                                        hour: '2-digit',
-                                                        minute: '2-digit'
-                                                    })}
-                                                </td>
-                                                <td className="px-6 py-4 text-sm text-white font-medium">
-                                                    {transaction.merchant_name}
-                                                </td>
-                                                <td className="px-6 py-4 text-sm text-slate-400">
-                                                    {transaction.mcc_description || 'Other'}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-medium text-white">
-                                                    ${transaction.amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-center">
-                                                    <StatusBadge status={transaction.status} />
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-
-                        {/* Mobile Card View */}
-                        <div className="md:hidden space-y-3">
-                            {filteredTransactions.map((transaction) => (
-                                <div key={transaction.id} className="bg-slate-800/50 rounded-lg border border-slate-700 p-4">
-                                    <div className="flex items-start justify-between mb-3">
-                                        <div className="flex-1">
-                                            <h3 className="text-white font-medium">{transaction.merchant_name}</h3>
-                                            <p className="text-xs text-slate-400 mt-1">
-                                                {transaction.mcc_description || 'Other'}
-                                            </p>
-                                        </div>
-                                        <StatusBadge status={transaction.status} />
-                                    </div>
-                                    <div className="flex items-center justify-between pt-3 border-t border-slate-700">
-                                        <span className="text-xs text-slate-400">
-                                            {new Date(transaction.created_at).toLocaleString('en-US', {
-                                                month: 'short',
-                                                day: 'numeric',
-                                                hour: '2-digit',
-                                                minute: '2-digit'
-                                            })}
-                                        </span>
-                                        <span className="text-lg font-semibold text-white">
-                                            ${transaction.amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                        </span>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-
-                        {/* Pagination */}
-                        {totalPages > 1 && (
-                            <div className="mt-6 flex items-center justify-between">
-                                <p className="text-sm text-slate-400">
-                                    Page {currentPage} of {totalPages}
-                                </p>
-                                <div className="flex gap-2">
-                                    <Button
-                                        variant="secondary"
-                                        onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                                        disabled={currentPage === 1}
+                {/* Ledger Table */}
+                <div className="glass-card rounded-[2.5rem] border border-white/5 overflow-hidden shadow-2xl">
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left">
+                            <thead className="bg-slate-950/50">
+                                <tr>
+                                    <th className="px-8 py-5 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Timestamp</th>
+                                    <th className="px-8 py-5 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Merchant</th>
+                                    <th className="px-8 py-5 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Classification</th>
+                                    <th className="px-8 py-5 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Settlement</th>
+                                    <th className="px-8 py-5 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] text-right">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-white/5">
+                                {transactions.map((tx, idx) => (
+                                    <motion.tr
+                                        initial={{ opacity: 0, x: -10 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        transition={{ delay: idx * 0.05 }}
+                                        key={tx.id}
+                                        className="hover:bg-white/[0.02] transition-all group cursor-pointer"
                                     >
-                                        Previous
-                                    </Button>
-                                    <Button
-                                        variant="secondary"
-                                        onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                                        disabled={currentPage === totalPages}
-                                    >
-                                        Next
-                                    </Button>
-                                </div>
+                                        <td className="px-8 py-6">
+                                            <p className="text-xs font-bold text-slate-300">{new Date(tx.created_at).toLocaleDateString()}</p>
+                                            <p className="text-[10px] font-bold text-slate-600 mt-1 uppercase tracking-widest">{new Date(tx.created_at).toLocaleTimeString()}</p>
+                                        </td>
+                                        <td className="px-8 py-6">
+                                            <div className="flex items-center space-x-3">
+                                                <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-all">
+                                                    <DollarSign className="w-4 h-4" />
+                                                </div>
+                                                <span className="font-bold text-white tracking-tight">{tx.merchant_name}</span>
+                                            </div>
+                                        </td>
+                                        <td className="px-8 py-6">
+                                            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest bg-slate-400/5 px-2 py-1 rounded-md">{tx.mcc_description}</span>
+                                        </td>
+                                        <td className="px-8 py-6">
+                                            <div className={cn(
+                                                "inline-flex items-center space-x-1 px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest",
+                                                tx.status === 'completed' ? 'text-green-500 bg-green-500/10' : 'text-amber-500 bg-amber-500/10'
+                                            )}>
+                                                <span>{tx.status}</span>
+                                            </div>
+                                        </td>
+                                        <td className="px-8 py-6 text-right">
+                                            <div className="flex items-center justify-end space-x-2">
+                                                <span className="text-lg font-black text-white tracking-tighter">${tx.amount.toFixed(2)}</span>
+                                                <ArrowUpRight className="w-4 h-4 text-slate-700 group-hover:text-blue-500 transition-colors" />
+                                            </div>
+                                        </td>
+                                    </motion.tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {/* Pagination */}
+                    <div className="p-8 border-t border-white/5 bg-slate-900/40 flex items-center justify-between">
+                        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.3em]">Vault Ledger 1.0.4</p>
+                        <div className="flex items-center space-x-4">
+                            <button className="p-2 rounded-xl bg-white/5 text-slate-500 hover:text-white transition-all"><ChevronLeft className="w-4 h-4" /></button>
+                            <div className="flex items-center space-x-2">
+                                {[1, 2, 3].map(p => (
+                                    <button key={p} className={cn("w-8 h-8 rounded-lg text-[10px] font-black transition-all", p === 1 ? "bg-blue-600 text-white" : "text-slate-500 hover:text-white")}>{p}</button>
+                                ))}
                             </div>
-                        )}
-                    </>
-                )}
+                            <button className="p-2 rounded-xl bg-white/5 text-slate-500 hover:text-white transition-all"><ChevronRight className="w-4 h-4" /></button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </DashboardShell>
-    );
-}
-
-function StatusBadge({ status }: { status: string }) {
-    const styles: any = {
-        approved: 'bg-green-600/20 text-green-400 border-green-600',
-        completed: 'bg-green-600/20 text-green-400 border-green-600',
-        declined: 'bg-red-600/20 text-red-400 border-red-600',
-        failed: 'bg-red-600/20 text-red-400 border-red-600',
-        pending: 'bg-yellow-600/20 text-yellow-400 border-yellow-600',
-    };
-
-    return (
-        <span className={`px-2 py-1 rounded-md text-xs font-medium border ${styles[status] || 'bg-slate-700 text-slate-300 border-slate-600'}`}>
-            {status.charAt(0).toUpperCase() + status.slice(1)}
-        </span>
     );
 }

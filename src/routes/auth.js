@@ -1,6 +1,7 @@
 const express = require('express');
 const JWTService = require('../services/auth/JWTService');
 const PasswordService = require('../services/auth/PasswordService');
+const MFAService = require('../services/auth/MFAService');
 const { ValidationError, AuthenticationError } = require('../errors/AppError');
 const { authLimiter } = require('../middleware/rateLimiter');
 const asyncHandler = require('../utils/asyncHandler');
@@ -125,8 +126,70 @@ router.post('/login', authLimiter, csrfProtection, validate(schemas.login), asyn
     throw new AuthenticationError('Invalid credentials');
   }
 
+  // Check if MFA is enabled
+  if (user.two_factor_enabled) {
+    const mfaToken = JWTService.generateMFAToken(user);
+    return res.json({
+      success: true,
+      mfaRequired: true,
+      mfaToken
+    });
+  }
+
   const tokens = JWTService.generateTokenPair(user);
   delete user.password_hash;
+  delete user.two_factor_secret;
+  delete user.two_factor_backup_codes;
+
+  res.json({ success: true, user, tokens });
+}));
+
+/**
+ * POST /auth/mfa/verify
+ * Secondary step of login if MFA is enabled
+ */
+router.post('/mfa/verify', authLimiter, csrfProtection, asyncHandler(async (req, res) => {
+  const { code, mfaToken } = req.body;
+
+  if (!code || !mfaToken) {
+    throw new ValidationError('Code and MFA token required');
+  }
+
+  // 1. Verify mfaToken
+  const decoded = JWTService.verifyMFAToken(mfaToken);
+
+  // 2. Fetch user
+  const userRepo = req.repositories.user;
+  const user = await userRepo.findById(decoded.id);
+
+  if (!user || !user.two_factor_enabled) {
+    throw new AuthenticationError('MFA not active or user not found');
+  }
+
+  // 3. Verify MFA code OR backup code
+  const isTokenValid = MFAService.verifyToken(user.two_factor_secret, code);
+
+  let isBackupValid = false;
+  let backupCodes = JSON.parse(user.two_factor_backup_codes || '[]');
+  if (!isTokenValid) {
+    const codeIndex = backupCodes.indexOf(code.toUpperCase());
+    if (codeIndex !== -1) {
+      isBackupValid = true;
+      backupCodes.splice(codeIndex, 1);
+      // Update backup codes in DB
+      await userRepo.update(user.id, { two_factor_backup_codes: JSON.stringify(backupCodes) });
+    }
+  }
+
+  if (!isTokenValid && !isBackupValid) {
+    throw new AuthenticationError('Invalid MFA code');
+  }
+
+  // 4. Issue full tokens
+  const tokens = JWTService.generateTokenPair(user);
+  delete user.password_hash;
+  delete user.two_factor_secret;
+  delete user.two_factor_backup_codes;
 
   res.json({ success: true, user, tokens });
 }));

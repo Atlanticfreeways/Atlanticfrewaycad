@@ -3,11 +3,13 @@ const cardAdapter = require('../adapters/marqeta/CardAdapter');
 const { NotFoundError } = require('../errors/AppError');
 
 class PersonalService {
-  constructor(repositories) {
+  constructor(repositories, services = {}) {
     this.userRepo = repositories.user;
     this.cardRepo = repositories.card;
     this.walletRepo = repositories.wallet;
     this.transactionRepo = repositories.transaction;
+    this.compliance = services.compliance;
+    this.ledger = services.ledger;
   }
 
   async createPersonalAccount(userId, accountData) {
@@ -61,6 +63,11 @@ class PersonalService {
       throw new Error('User not registered with Marqeta');
     }
 
+    // Phase 2: Compliance Check (KYC + Sanctions)
+    if (this.compliance) {
+      await this.compliance.checkComplianceForIssuance(userId);
+    }
+
     const cardProductToken = process.env.MARQETA_PERSONAL_CARD_PRODUCT || 'personal_card_product';
 
     const marqetaCard = await cardAdapter.issueCard({
@@ -108,6 +115,12 @@ class PersonalService {
 
     const updated = await this.walletRepo.addFunds(userId, amount);
     await this.walletRepo.recordTransaction(userId, amount, 'deposit', source);
+
+    // Phase 3: Record in Ledger
+    if (this.ledger) {
+      await this.ledger.recordWalletLoad(userId, amount, updated.id, `Wallet Load via ${source}`);
+    }
+
     return updated;
   }
 

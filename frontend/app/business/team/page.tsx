@@ -1,219 +1,149 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { DashboardShell } from '@/components/layout/DashboardShell';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { UserPlus, Mail, Trash2, Shield } from 'lucide-react';
+import { DashboardShell } from "@/components/layout/DashboardShell";
+import {
+    Users,
+    UserPlus,
+    Shield,
+    MoreVertical,
+    Mail,
+    CheckCircle2,
+    Clock,
+    Search,
+    Filter
+} from "lucide-react";
+import { useState } from "react";
+import { motion } from "framer-motion";
+import { cn } from "@/lib/utils";
 
-interface TeamMember {
-    id: string;
-    email: string;
-    full_name: string;
-    role: string;
-    status: string;
-    invited_at: string;
-    last_active: string;
-}
+const teamMembers = [
+    { id: 1, name: 'Alex Rivera', email: 'alex@atlantic.com', role: 'Administrator', status: 'active', avatar: 'AR' },
+    { id: 2, name: 'Jordan Smith', email: 'jordan@atlantic.com', role: 'Finance Manager', status: 'active', avatar: 'JS' },
+    { id: 3, name: 'Casey Wilson', email: 'casey@atlantic.com', role: 'Developer', status: 'pending', avatar: 'CW' },
+    { id: 4, name: 'Morgan Lee', email: 'morgan@atlantic.com', role: 'Read Only', status: 'active', avatar: 'ML' },
+];
 
-export default function TeamManagementPage() {
-    const [members, setMembers] = useState<TeamMember[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [inviteEmail, setInviteEmail] = useState('');
-    const [inviteRole, setInviteRole] = useState('operator');
-
-    useEffect(() => {
-        fetchTeam();
-    }, []);
-
-    const fetchTeam = async () => {
-        try {
-            const token = localStorage.getItem('token');
-            const response = await fetch('/api/v1/business/team', {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            const data = await response.json();
-            if (data.success) {
-                setMembers(data.team);
-            }
-        } catch (error) {
-            console.error('Failed to fetch team:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleInvite = async (e: React.FormEvent) => {
-        e.preventDefault();
-        try {
-            const token = localStorage.getItem('token');
-            const response = await fetch('/api/v1/business/team/invite', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({ email: inviteEmail, role: inviteRole })
-            });
-
-            if (response.ok) {
-                alert('Invitation sent successfully');
-                setInviteEmail('');
-                fetchTeam();
-            }
-        } catch (error) {
-            console.error('Failed to send invitation:', error);
-            alert('Failed to send invitation');
-        }
-    };
-
-    const handleRemove = async (memberId: string) => {
-        if (!confirm('Are you sure you want to remove this team member?')) return;
-
-        try {
-            const token = localStorage.getItem('token');
-            await fetch(`/api/v1/business/team/${memberId}`, {
-                method: 'DELETE',
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            setMembers(members.filter(m => m.id !== memberId));
-        } catch (error) {
-            console.error('Failed to remove member:', error);
-        }
-    };
-
-    const handleRoleChange = async (memberId: string, newRole: string) => {
-        try {
-            const token = localStorage.getItem('token');
-            await fetch(`/api/v1/business/team/${memberId}/role`, {
-                method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({ role: newRole })
-            });
-            setMembers(members.map(m => m.id === memberId ? { ...m, role: newRole } : m));
-        } catch (error) {
-            console.error('Failed to update role:', error);
-        }
-    };
-
-    const getRoleBadge = (role: string) => {
-        const colors: Record<string, string> = {
-            admin: 'bg-red-600',
-            finance_manager: 'bg-purple-600',
-            operator: 'bg-blue-600',
-            viewer: 'bg-slate-600',
-        };
-        return <Badge className={`${colors[role] || 'bg-slate-600'} text-white`}>
-            {role.replace('_', ' ').toUpperCase()}
-        </Badge>;
-    };
+export default function TeamPage() {
+    const [searchTerm, setSearchTerm] = useState('');
 
     return (
         <DashboardShell>
-            <div className="p-8">
-                <div className="mb-8">
-                    <h1 className="text-3xl font-bold text-white">Team Management</h1>
-                    <p className="text-slate-400 mt-2">Manage users and permissions for your business account</p>
+            <div className="space-y-10 animate-in fade-in slide-in-from-bottom-6 duration-1000">
+                <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+                    <div>
+                        <h1 className="text-4xl font-extrabold text-white tracking-tight text-glow">Team Management</h1>
+                        <p className="text-slate-500 font-bold uppercase tracking-[0.2em] text-[10px] mt-2">Manage workspace permissions & members</p>
+                    </div>
+                    <button
+                        className="group flex items-center space-x-3 bg-white text-black px-8 py-4 rounded-2xl transition-all shadow-xl shadow-white/5 active:scale-95 font-bold hover:bg-slate-200"
+                    >
+                        <UserPlus className="w-5 h-5" />
+                        <span>Invite Member</span>
+                    </button>
                 </div>
 
-                {/* Invite Form */}
-                <div className="bg-slate-800/50 rounded-xl p-6 border border-slate-700 mb-6">
-                    <h2 className="text-xl font-semibold text-white mb-4">Invite Team Member</h2>
-                    <form onSubmit={handleInvite} className="flex gap-4">
-                        <input
-                            type="email"
-                            placeholder="email@example.com"
-                            value={inviteEmail}
-                            onChange={(e) => setInviteEmail(e.target.value)}
-                            required
-                            className="flex-1 px-4 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                        <select
-                            value={inviteRole}
-                            onChange={(e) => setInviteRole(e.target.value)}
-                            className="px-4 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        >
-                            <option value="admin">Admin</option>
-                            <option value="finance_manager">Finance Manager</option>
-                            <option value="operator">Operator</option>
-                            <option value="viewer">Viewer</option>
-                        </select>
-                        <Button type="submit" className="flex items-center gap-2">
-                            <UserPlus className="w-4 h-4" />
-                            Invite
-                        </Button>
-                    </form>
+                {/* Stats Bar */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <StatBox label="Total Members" value="12" />
+                    <StatBox label="Active Now" value="4" />
+                    <StatBox label="Pending invites" value="2" />
+                    <StatBox label="Admin seats" value="3/5" />
                 </div>
 
-                {/* Team Members Table */}
-                <div className="bg-slate-800/50 rounded-xl border border-slate-700 overflow-hidden">
-                    <table className="w-full">
-                        <thead className="bg-slate-900">
-                            <tr>
-                                <th className="px-4 py-3 text-left text-sm font-medium text-slate-300">Name</th>
-                                <th className="px-4 py-3 text-left text-sm font-medium text-slate-300">Email</th>
-                                <th className="px-4 py-3 text-left text-sm font-medium text-slate-300">Role</th>
-                                <th className="px-4 py-3 text-left text-sm font-medium text-slate-300">Status</th>
-                                <th className="px-4 py-3 text-left text-sm font-medium text-slate-300">Last Active</th>
-                                <th className="px-4 py-3 text-right text-sm font-medium text-slate-300">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {loading ? (
+                <div className="glass-card rounded-[2.5rem] border border-white/5 overflow-hidden shadow-2xl">
+                    <div className="p-8 border-b border-white/5 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-900/40">
+                        <div className="relative flex-1 max-w-md">
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                            <input
+                                type="text"
+                                placeholder="Search by name or email..."
+                                className="w-full bg-slate-950 border border-white/5 rounded-xl py-3 pl-12 pr-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-600/50 transition-all font-medium"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                            />
+                        </div>
+                        <div className="flex items-center space-x-2">
+                            <button className="flex items-center space-x-2 px-4 py-3 bg-white/5 rounded-xl text-xs font-bold text-slate-400 hover:text-white transition-all">
+                                <Filter className="w-4 h-4" />
+                                <span>Category</span>
+                            </button>
+                            <button className="flex items-center space-x-2 px-4 py-3 bg-white/5 rounded-xl text-xs font-bold text-slate-400 hover:text-white transition-all">
+                                <Shield className="w-4 h-4" />
+                                <span>Roles</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left">
+                            <thead className="bg-slate-950/50">
                                 <tr>
-                                    <td colSpan={6} className="px-4 py-8 text-center text-slate-400">
-                                        Loading team members...
-                                    </td>
+                                    <th className="px-8 py-5 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Member</th>
+                                    <th className="px-8 py-5 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Role</th>
+                                    <th className="px-8 py-5 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Status</th>
+                                    <th className="px-8 py-5 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] text-right">Actions</th>
                                 </tr>
-                            ) : members.length === 0 ? (
-                                <tr>
-                                    <td colSpan={6} className="px-4 py-8 text-center text-slate-400">
-                                        No team members yet. Invite someone to get started!
-                                    </td>
-                                </tr>
-                            ) : (
-                                members.map((member) => (
-                                    <tr key={member.id} className="border-t border-slate-700 hover:bg-slate-700/30">
-                                        <td className="px-4 py-3 text-sm text-white">{member.full_name}</td>
-                                        <td className="px-4 py-3 text-sm text-slate-300">{member.email}</td>
-                                        <td className="px-4 py-3">
-                                            <select
-                                                value={member.role}
-                                                onChange={(e) => handleRoleChange(member.id, e.target.value)}
-                                                className="px-2 py-1 bg-slate-900 border border-slate-700 rounded text-sm text-white"
-                                            >
-                                                <option value="admin">Admin</option>
-                                                <option value="finance_manager">Finance Manager</option>
-                                                <option value="operator">Operator</option>
-                                                <option value="viewer">Viewer</option>
-                                            </select>
+                            </thead>
+                            <tbody className="divide-y divide-white/5">
+                                {teamMembers.map((member, idx) => (
+                                    <motion.tr
+                                        initial={{ opacity: 0, x: -10 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        transition={{ delay: idx * 0.05 }}
+                                        key={member.id}
+                                        className="hover:bg-white/[0.02] transition-all group"
+                                    >
+                                        <td className="px-8 py-6">
+                                            <div className="flex items-center space-x-4">
+                                                <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-purple-600 flex items-center justify-center font-bold text-xs shadow-lg shadow-blue-600/10">
+                                                    {member.avatar}
+                                                </div>
+                                                <div>
+                                                    <p className="font-bold text-white tracking-tight">{member.name}</p>
+                                                    <p className="text-xs text-slate-500 font-medium">{member.email}</p>
+                                                </div>
+                                            </div>
                                         </td>
-                                        <td className="px-4 py-3">
-                                            <Badge className={member.status === 'active' ? 'bg-green-600' : 'bg-yellow-600'}>
-                                                {member.status}
-                                            </Badge>
+                                        <td className="px-8 py-6">
+                                            <div className="flex items-center space-x-2">
+                                                <Shield className="w-3 h-3 text-blue-500" />
+                                                <span className="text-sm font-bold text-slate-300">{member.role}</span>
+                                            </div>
                                         </td>
-                                        <td className="px-4 py-3 text-sm text-slate-400">
-                                            {member.last_active ? new Date(member.last_active).toLocaleDateString() : 'Never'}
+                                        <td className="px-8 py-6">
+                                            <div className={cn(
+                                                "inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest",
+                                                member.status === 'active' ? 'bg-green-500/10 text-green-500' : 'bg-amber-500/10 text-amber-500'
+                                            )}>
+                                                {member.status === 'active' ? <CheckCircle2 className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
+                                                <span>{member.status}</span>
+                                            </div>
                                         </td>
-                                        <td className="px-4 py-3 text-right">
-                                            <button
-                                                onClick={() => handleRemove(member.id)}
-                                                className="text-red-400 hover:text-red-300"
-                                            >
-                                                <Trash2 className="w-4 h-4" />
+                                        <td className="px-8 py-6 text-right">
+                                            <button className="p-2 rounded-xl bg-white/5 text-slate-500 hover:text-white transition-all">
+                                                <MoreVertical className="w-4 h-4" />
                                             </button>
                                         </td>
-                                    </tr>
-                                ))
-                            )}
-                        </tbody>
-                    </table>
+                                    </motion.tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div className="p-8 bg-slate-900/20 text-center border-t border-white/5">
+                        <p className="text-xs font-bold text-slate-600 uppercase tracking-widest">Showing 4 of 12 workspace members</p>
+                    </div>
                 </div>
             </div>
         </DashboardShell>
     );
+}
+
+function StatBox({ label, value }: { label: string, value: string }) {
+    return (
+        <div className="glass-card p-6 rounded-3xl border border-white/5">
+            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">{label}</p>
+            <p className="text-2xl font-black text-white tracking-tighter">{value}</p>
+        </div>
+    )
 }

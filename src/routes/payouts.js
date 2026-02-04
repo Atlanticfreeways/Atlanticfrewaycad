@@ -2,20 +2,21 @@ const express = require('express');
 const router = express.Router();
 const payoutService = require('../services/PayoutService');
 const memoryStore = require('../utils/memoryStore');
+const idempotency = require('../middleware/idempotency');
 
 // Get payout summary for partner
 router.get('/summary/:code', (req, res) => {
   const partner = memoryStore.getPartner(req.params.code);
-  
+
   if (!partner) {
-    return res.status(404).json({ 
+    return res.status(404).json({
       success: false,
-      error: 'Partner not found' 
+      error: 'Partner not found'
     });
   }
 
   const summary = payoutService.getPayoutSummary(partner.id);
-  
+
   res.json({
     success: true,
     data: summary
@@ -23,9 +24,9 @@ router.get('/summary/:code', (req, res) => {
 });
 
 // Request a payout
-router.post('/request', (req, res) => {
+router.post('/request', idempotency, (req, res) => {
   const { partner_code, amount } = req.body;
-  
+
   if (!partner_code || !amount) {
     return res.status(400).json({
       success: false,
@@ -43,7 +44,7 @@ router.post('/request', (req, res) => {
 
   try {
     const payout = payoutService.requestPayout(partner.id, amount);
-    
+
     res.json({
       success: true,
       data: payout,
@@ -58,10 +59,10 @@ router.post('/request', (req, res) => {
 });
 
 // Process a payout
-router.post('/process/:id', async (req, res) => {
+router.post('/process/:id', idempotency, async (req, res) => {
   try {
     const payout = await payoutService.processPayout(req.params.id);
-    
+
     res.json({
       success: true,
       data: payout,
@@ -78,16 +79,16 @@ router.post('/process/:id', async (req, res) => {
 // Get payout history
 router.get('/history/:code', (req, res) => {
   const partner = memoryStore.getPartner(req.params.code);
-  
+
   if (!partner) {
-    return res.status(404).json({ 
+    return res.status(404).json({
       success: false,
-      error: 'Partner not found' 
+      error: 'Partner not found'
     });
   }
 
   const history = payoutService.getPayoutHistory(partner.id);
-  
+
   res.json({
     success: true,
     data: history,
@@ -98,16 +99,16 @@ router.get('/history/:code', (req, res) => {
 // Get available balance
 router.get('/balance/:code', (req, res) => {
   const partner = memoryStore.getPartner(req.params.code);
-  
+
   if (!partner) {
-    return res.status(404).json({ 
+    return res.status(404).json({
       success: false,
-      error: 'Partner not found' 
+      error: 'Partner not found'
     });
   }
 
   const balance = payoutService.getAvailableBalance(partner.id);
-  
+
   res.json({
     success: true,
     data: {
@@ -122,7 +123,7 @@ router.get('/balance/:code', (req, res) => {
 router.post('/cancel/:id', (req, res) => {
   try {
     const payout = payoutService.cancelPayout(req.params.id);
-    
+
     res.json({
       success: true,
       data: payout,

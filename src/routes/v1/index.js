@@ -30,6 +30,7 @@ router.use('/users/profile', require('./users/profile')); // NEW: User profile
 router.use('/users/privacy', require('./users/privacy')); // NEW: GDPR privacy
 router.use('/users', require('./users/password')); // NEW: Password change
 router.use('/users', require('./users/apiKeys')); // NEW: API key management
+router.use('/users/mfa', require('./users/mfa')); // NEW: Multi-factor authentication
 
 // Notifications
 router.use('/notifications', require('./notifications')); // NEW: Notifications center

@@ -87,7 +87,7 @@ router.post('/invite', authorize(['admin']), asyncHandler(async (req, res) => {
 
     // Generate temporary password
     const tempPassword = crypto.randomBytes(16).toString('hex');
-    const bcrypt = require('bcrypt');
+    const bcrypt = require('bcryptjs');
     const passwordHash = await bcrypt.hash(tempPassword, 10);
 
     // Create user

@@ -1,135 +1,158 @@
 "use client";
 
-import { DashboardShell } from "@/components/layout/DashboardShell";
-import { CreditCard, ArrowUpRight, ArrowDownLeft, Activity, Loader2 } from "lucide-react";
-import { useDashboardData } from "@/hooks/useDashboardData";
-import { useAuth } from "@/contexts/AuthContext";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import React from 'react';
+import Link from 'next/link';
+import { ArrowRight, Zap, ShieldCheck, Code2, Globe, Cpu } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { ModernNavbar, ModernFooter } from '@/components/landing/ModernLayout';
+import { CardShowcase } from '@/components/landing/CardShowcase';
+import { IssuanceSpecs } from '@/components/landing/IssuanceSpecs';
+import { ProductSpotlight } from '@/components/landing/ProductSpotlight';
+import { Pricing, LandingMarquee, Testimonials } from '@/components/landing/EnterpriseSections';
 
-import { useRealtimeBalance } from "@/hooks/useSocket";
-
-export default function Home() {
-  const { user, loading: authLoading } = useAuth();
-  const { data, loading: dataLoading, error } = useDashboardData();
-  const router = useRouter();
-
-  // Safe default
-  const initialBalance = parseFloat(data?.metrics?.availableBalance || 0);
-  const liveBalance = useRealtimeBalance(initialBalance);
-
-  useEffect(() => {
-    if (!authLoading && !user) {
-      router.push('/login');
-    }
-  }, [user, authLoading, router]);
-
-  if (authLoading || dataLoading) {
-    return (
-      <div className="h-screen w-full flex items-center justify-center bg-slate-950 text-white">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
-      </div>
-    )
-  }
-
-  if (!user || !data) return null;
-
-  const metrics = data.metrics || {};
-  const transactions = data.recentTransactions || [];
-
+export default function LandingPage() {
   return (
-    <DashboardShell>
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <StatsCard
-          title="Total Balance"
-          value={`$${liveBalance.toLocaleString('en-US', { minimumFractionDigits: 2 })}`}
-          change="+0.0%"
-          type="neutral"
-          icon={CreditCard}
-        />
-        <StatsCard
-          title="Monthly Spending"
-          value={`$${metrics.totalSpend?.current?.toLocaleString() || '0.00'}`}
-          change={`${metrics.totalSpend?.change || 0}%`}
-          type="negative"
-          icon={ArrowUpRight}
-        />
-        <StatsCard
-          title="Income"
-          value="$0.00"
-          change="+0%"
-          icon={ArrowDownLeft}
-        />
-        <StatsCard
-          title="Active Cards"
-          value={metrics.activeCards?.toString() || "0"}
-          change={metrics.activeCards > 0 ? "Active" : "None"}
-          type="neutral"
-          icon={Activity}
-        />
+    <div className="bg-slate-950 min-h-screen text-white selection:bg-blue-600/30">
+      {/* Sandbox Top-Bar */}
+      <div className="bg-blue-600 py-3 px-4 relative z-[60]">
+        <div className="max-w-7xl mx-auto flex items-center justify-center space-x-3">
+          <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/90">Instant Access Available</span>
+          <div className="w-[1px] h-3 bg-white/20" />
+          <Link href="/auth/register" className="flex items-center space-x-2 group">
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white">Initialize your sandbox in 30 seconds</span>
+            <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+          </Link>
+        </div>
       </div>
 
-      {/* Main Content Split */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Left: Spending Chart (Placeholder) */}
-        <div className="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl p-6">
-          <h2 className="text-lg font-semibold mb-4">Spending Analysis</h2>
-          <div className="h-64 flex items-center justify-center bg-slate-950/50 rounded-xl border border-dashed border-slate-800">
-            <span className="text-slate-500">Spending Chart will appear here</span>
+      <ModernNavbar />
+
+      <main>
+        {/* Hero Section */}
+        <section className="pt-48 pb-20 px-4 md:px-8 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-blue-600/10 blur-[120px] rounded-full -mr-32 -mt-32 pointer-events-none" />
+
+          <div className="max-w-7xl mx-auto text-center space-y-12">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="inline-flex items-center space-x-3 px-4 py-2 bg-blue-600/10 border border-blue-500/20 rounded-full text-blue-400 text-[10px] font-black uppercase tracking-[0.2em]"
+            >
+              <Zap className="w-3 h-3 fill-current" />
+              <span>v2.0 Infrastructure Live</span>
+            </motion.div>
+
+            <motion.h1
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-6xl md:text-8xl lg:text-9xl font-black tracking-tight leading-[0.9] text-glow"
+            >
+              Issuing <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-white to-blue-600">Reinvented.</span>
+            </motion.h1>
+
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="max-w-3xl mx-auto text-lg md:text-xl text-slate-400 font-medium leading-relaxed"
+            >
+              Deploy physical and virtual card fleets instantly. Global ledger, high-speed rails,
+              and bank-grade compliance built for the next generation of fintech innovators.
+            </motion.p>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="flex flex-col sm:flex-row items-center justify-center gap-6"
+            >
+              <Link
+                href="/auth/register"
+                className="group w-full sm:w-auto bg-white text-black px-10 py-5 rounded-[2rem] font-black text-xl hover:bg-slate-100 transition-all active:scale-95 shadow-2xl shadow-white/5 flex items-center justify-center space-x-3"
+              >
+                <span>Get Your Card</span>
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-2 transition-transform" />
+              </Link>
+              <Link
+                href="/auth/login"
+                className="w-full sm:w-auto bg-white/5 border border-white/10 px-10 py-5 rounded-[2rem] font-black text-xl hover:bg-white/10 transition-all flex items-center justify-center"
+              >
+                Sign In
+              </Link>
+            </motion.div>
+          </div>
+
+          <div className="mt-32 max-w-7xl mx-auto">
+            <LandingMarquee />
+          </div>
+        </section>
+
+        <div id="products">
+          <CardShowcase />
+        </div>
+
+        <div>
+          <ProductSpotlight />
+        </div>
+
+        <div>
+          <IssuanceSpecs />
+        </div>
+
+        <div id="solutions" className="py-32 bg-slate-900/30">
+          <div className="max-w-7xl mx-auto px-4 md:px-8">
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+              <MainFeature icon={ShieldCheck} title="Compliance Hub" desc="SOC2, PCI-DSS, and KYB automated." />
+              <MainFeature icon={Globe} title="180+ Countries" desc="Global settlement rails established." />
+              <MainFeature icon={Code2} title="Developer API" desc="Modern SDKs for every language." />
+              <MainFeature icon={Cpu} title="Deep Core" desc="Proprietary high-speed ledger." />
+            </div>
           </div>
         </div>
 
-        {/* Right: Recent Transactions */}
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
-          <h2 className="text-lg font-semibold mb-4">Recent Transactions</h2>
-          <div className="space-y-4">
-            {transactions.length === 0 ? (
-              <p className="text-slate-500 text-sm text-center py-4">No recent transactions</p>
-            ) : (
-              transactions.map((tx: any, i: number) => (
-                <div key={i} className="flex items-center justify-between p-3 hover:bg-slate-800 rounded-lg transition-colors cursor-pointer group">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center group-hover:bg-blue-900 transition-colors">
-                      <span className="text-lg">🛒</span>
-                    </div>
-                    <div>
-                      <p className="font-medium text-sm text-white">{tx.merchant_name || 'Unknown Merchant'}</p>
-                      <p className="text-xs text-slate-500">{tx.merchant_category || 'General'}</p>
-                    </div>
-                  </div>
-                  <span className="text-sm font-medium text-slate-200">
-                    {tx.amount < 0 ? '-' : ''}${Math.abs(tx.amount).toFixed(2)}
-                  </span>
-                </div>
-              ))
-            )}
-          </div>
+        <div id="pricing">
+          <Pricing />
         </div>
-      </div>
-    </DashboardShell>
+
+        <div>
+          <Testimonials />
+        </div>
+
+        {/* Final CTA */}
+        <section className="py-40 px-4">
+          <div className="max-w-5xl mx-auto glass-card rounded-[3.5rem] p-12 md:p-24 text-center space-y-12 relative overflow-hidden group">
+            <div className="absolute inset-0 bg-blue-600/10 blur-[80px] -z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
+
+            <h2 className="text-5xl md:text-7xl font-black tracking-tighter leading-none">
+              Ready to build the <br />
+              <span className="text-blue-500">future of money?</span>
+            </h2>
+            <p className="max-w-2xl mx-auto text-slate-500 font-bold uppercase tracking-[0.2em] text-xs">
+              Join 5,000+ companies using Atlantic to power their financial products.
+            </p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
+              <Link href="/auth/register" className="bg-blue-600 hover:bg-blue-500 text-white px-12 py-5 rounded-2xl font-black text-xl shadow-xl shadow-blue-600/30 active:scale-95 transition-all">Start Your Trial</Link>
+              <Link href="#" className="text-blue-500 font-black uppercase tracking-[0.2em] text-xs hover:text-white transition-colors">Contact Sales Force</Link>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <ModernFooter />
+    </div>
   );
 }
 
-function StatsCard({ title, value, change, type = 'positive', icon: Icon }: any) {
-  const isPos = type === 'positive';
-  const isNeg = type === 'negative';
-
+function MainFeature({ icon: Icon, title, desc }: any) {
   return (
-    <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl hover:border-slate-700 transition-all cursor-default">
-      <div className="flex items-center justify-between mb-4">
-        <span className="text-slate-400 text-sm font-medium">{title}</span>
-        <div className="p-2 bg-slate-800 rounded-lg">
-          <Icon className="w-4 h-4 text-slate-400" />
-        </div>
+    <div className="p-8 glass-card rounded-3xl border border-white/5 space-y-6 group hover:border-blue-500/20 transition-all">
+      <div className="w-12 h-12 bg-blue-600/10 rounded-xl flex items-center justify-center group-hover:bg-blue-600 transition-colors">
+        <Icon className="w-6 h-6 text-blue-500 group-hover:text-white" />
       </div>
-      <div className="flex items-end justify-between">
-        <h3 className="text-2xl font-bold text-white">{value}</h3>
-        <span className={`text-xs font-medium px-2 py-1 rounded-full ${isPos ? 'bg-green-500/10 text-green-400' :
-          isNeg ? 'bg-red-500/10 text-red-400' : 'bg-slate-700 text-slate-300'
-          }`}>
-          {change}
-        </span>
+      <div>
+        <h4 className="text-xl font-bold text-white mb-2 tracking-tight">{title}</h4>
+        <p className="text-sm text-slate-500 font-medium leading-relaxed">{desc}</p>
       </div>
     </div>
   )

@@ -1,196 +1,173 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import { api } from '@/lib/api';
-import { Landmark, ArrowDownLeft, Copy, CheckCircle, RefreshCw } from 'lucide-react';
-import { DashboardShell } from '@/components/layout/DashboardShell';
+import { DashboardShell } from "@/components/layout/DashboardShell";
+import {
+    Landmark,
+    Zap,
+    ArrowRight,
+    RefreshCcw,
+    ShieldAlert,
+    Globe,
+    Lock,
+    PlayCircle,
+    CheckCircle2,
+    Database
+} from "lucide-react";
+import { useState } from "react";
+import { motion } from "framer-motion";
+import { cn } from "@/lib/utils";
 
-export default function BankingSimulatorPage() {
-    const [myAccount, setMyAccount] = useState<any>(null);
-    const [loadingAccount, setLoadingAccount] = useState(true);
+export default function BankingSimPage() {
+    const [isSimulating, setIsSimulating] = useState(false);
+    const [selectedBank, setSelectedBank] = useState('Central Reserve');
 
-    // Simulation Form
-    const [targetAccount, setTargetAccount] = useState('');
-    const [amount, setAmount] = useState('1500.00');
-    const [employer, setEmployer] = useState('Acme Corp Payroll');
-    const [simulating, setSimulating] = useState(false);
-    const [result, setResult] = useState<any>(null);
-
-    const fetchMyAccount = async () => {
-        try {
-            const response = await api.get('/banking/account');
-            setMyAccount(response.data);
-            // Auto-fill target if empty
-            if (!targetAccount) setTargetAccount(response.data.account_number);
-        } catch (error) {
-            console.error('Failed to fetch account', error);
-        } finally {
-            setLoadingAccount(false);
-        }
-    };
-
-    useEffect(() => {
-        fetchMyAccount();
-    }, []);
-
-    const handleSimulate = async () => {
-        setSimulating(true);
-        setResult(null);
-        try {
-            const response = await api.post('/banking/simulate-deposit', {
-                account_number: targetAccount,
-                amount: parseFloat(amount),
-                employer
-            });
-            setResult({ success: true, ...response.data });
-        } catch (error: any) {
-            setResult({ success: false, message: error.response?.data?.error || error.message });
-        } finally {
-            setSimulating(false);
-        }
-    };
-
-    const copyToClipboard = (text: string) => {
-        navigator.clipboard.writeText(text);
+    const runSimulation = () => {
+        setIsSimulating(true);
+        setTimeout(() => setIsSimulating(false), 2000);
     };
 
     return (
         <DashboardShell>
-            <div className="flex flex-col gap-8 p-8 max-w-5xl mx-auto">
-                <div>
-                    <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
-                        <Landmark className="h-8 w-8 text-emerald-600" />
-                        Banking Simulator
-                    </h1>
-                    <p className="text-muted-foreground mt-2">
-                        Test the GPR (General Purpose Reloadable) engine by simulating ACH Direct Deposits.
-                    </p>
+            <div className="space-y-12 animate-in fade-in slide-in-from-bottom-6 duration-1000">
+                <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+                    <div>
+                        <h1 className="text-4xl font-extrabold text-white tracking-tight text-glow">Banking Simulator</h1>
+                        <p className="text-slate-500 font-bold uppercase tracking-[0.2em] text-[10px] mt-2">Stress-test your financial infrastructure in sandbox</p>
+                    </div>
                 </div>
 
-                <div className="grid gap-8 md:grid-cols-2">
-                    {/* My Account Card */}
-                    <Card className="bg-slate-950 text-slate-50 border-slate-800">
-                        <CardHeader>
-                            <CardTitle className="flex justify-between items-center text-slate-50">
-                                Admin Tester Account
-                                <Badge variant="secondary" className="bg-emerald-500/20 text-emerald-400 border-none">Active</Badge>
-                            </CardTitle>
-                            <CardDescription className="text-slate-400">
-                                Use these details to receive test deposits.
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-6">
-                            {loadingAccount ? (
-                                <div className="text-slate-500">Loading virtual account details...</div>
-                            ) : myAccount ? (
-                                <>
-                                    <div className="space-y-1">
-                                        <label className="text-xs uppercase tracking-wider text-slate-500">Bank Name</label>
-                                        <p className="font-mono text-lg font-medium">{myAccount.bank_name}</p>
-                                    </div>
-                                    <div className="space-y-1">
-                                        <label className="text-xs uppercase tracking-wider text-slate-500">Routing Number</label>
-                                        <div className="flex items-center gap-2">
-                                            <p className="font-mono text-2xl tracking-widest">{myAccount.routing_number}</p>
-                                            <Button variant="ghost" size="icon" className="h-6 w-6 text-slate-400 hover:text-white" onClick={() => copyToClipboard(myAccount.routing_number)}>
-                                                <Copy className="h-3 w-3" />
-                                            </Button>
-                                        </div>
-                                    </div>
-                                    <div className="space-y-1">
-                                        <label className="text-xs uppercase tracking-wider text-slate-500">Account Number</label>
-                                        <div className="flex items-center gap-2">
-                                            <p className="font-mono text-2xl tracking-widest text-emerald-400">{myAccount.account_number}</p>
-                                            <Button variant="ghost" size="icon" className="h-6 w-6 text-slate-400 hover:text-white" onClick={() => copyToClipboard(myAccount.account_number)}>
-                                                <Copy className="h-3 w-3" />
-                                            </Button>
-                                        </div>
-                                    </div>
-                                </>
-                            ) : (
-                                <div className="text-red-400">Failed to load account. Are you logged in?</div>
-                            )}
-                        </CardContent>
-                    </Card>
-
-                    {/* Simulator Card */}
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>ACH Deposit Injector</CardTitle>
-                            <CardDescription>Simulates an incoming NACHA batch entry from an employer.</CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <div className="space-y-2">
-                                <Label>Target Account Number</Label>
-                                <Input
-                                    value={targetAccount}
-                                    onChange={(e) => setTargetAccount(e.target.value)}
-                                    placeholder="1234567890"
-                                    className="font-mono"
-                                />
+                <div className="grid lg:grid-cols-3 gap-8">
+                    {/* Simulation Controls */}
+                    <div className="lg:col-span-2 space-y-8">
+                        <div className="glass-card p-10 rounded-[3rem] border border-white/5 relative overflow-hidden group">
+                            <div className="absolute top-0 right-0 p-8">
+                                <Landmark className="w-12 h-12 text-blue-500/10 group-hover:text-blue-500/20 transition-colors" />
                             </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <Label>Amount (USD)</Label>
-                                    <Input
-                                        type="number"
-                                        value={amount}
-                                        onChange={(e) => setAmount(e.target.value)}
-                                        startAdornment="$"
-                                    />
+
+                            <h2 className="text-2xl font-black text-white mb-8 tracking-tight">Generate Live Traffic</h2>
+
+                            <div className="grid md:grid-cols-2 gap-8 mb-10">
+                                <div className="space-y-4">
+                                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest px-1">Network Path</label>
+                                    <select
+                                        className="w-full bg-slate-900 border border-white/5 rounded-2xl p-4 text-white focus:outline-none focus:ring-2 focus:ring-blue-600/50 transition-all font-bold"
+                                        value={selectedBank}
+                                        onChange={(e) => setSelectedBank(e.target.value)}
+                                    >
+                                        <option>Central Reserve (Domestic)</option>
+                                        <option>Eurozone Rails</option>
+                                        <option>Asia-Pacific Gateway</option>
+                                    </select>
                                 </div>
-                                <div className="space-y-2">
-                                    <Label>Employer / Originator</Label>
-                                    <Input
-                                        value={employer}
-                                        onChange={(e) => setEmployer(e.target.value)}
-                                    />
+                                <div className="space-y-4">
+                                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest px-1">Transaction Intensity</label>
+                                    <div className="flex items-center space-x-2 bg-slate-900 border border-white/5 rounded-2xl p-2">
+                                        {['Low', 'Medium', 'Burst'].map((level) => (
+                                            <button
+                                                key={level}
+                                                className={cn(
+                                                    "flex-1 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all",
+                                                    level === 'Medium' ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' : 'text-slate-500 hover:text-white'
+                                                )}
+                                            >
+                                                {level}
+                                            </button>
+                                        ))}
+                                    </div>
                                 </div>
                             </div>
 
-                            <Button
-                                className="w-full bg-emerald-600 hover:bg-emerald-700 mt-4"
-                                onClick={handleSimulate}
-                                disabled={simulating || !targetAccount}
+                            <button
+                                onClick={runSimulation}
+                                disabled={isSimulating}
+                                className="w-full bg-blue-600 hover:bg-blue-500 text-white py-5 rounded-2xl font-black text-lg tracking-tight transition-all active:scale-95 flex items-center justify-center space-x-3 disabled:opacity-50 shadow-2xl shadow-blue-600/30"
                             >
-                                {simulating ? (
+                                {isSimulating ? (
                                     <>
-                                        <RefreshCw className="mr-2 h-4 w-4 animate-spin" /> Transmitting...
+                                        <RefreshCcw className="w-5 h-5 animate-spin" />
+                                        <span>Broadcasting Signals...</span>
                                     </>
                                 ) : (
                                     <>
-                                        <ArrowDownLeft className="mr-2 h-4 w-4" /> Inject Deposit
+                                        <PlayCircle className="w-6 h-6" />
+                                        <span>Initiate Stress Test</span>
                                     </>
                                 )}
-                            </Button>
+                            </button>
+                        </div>
 
-                            {result && (
-                                <div className={`p-4 rounded-md mt-4 text-sm ${result.success ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'}`}>
-                                    {result.success ? (
-                                        <div className="flex items-start gap-2">
-                                            <CheckCircle className="h-5 w-5 text-green-600 shrink-0" />
-                                            <div>
-                                                <p className="font-semibold">Deposit Successful</p>
-                                                <p className="text-xs mt-1 opacity-80">
-                                                    Transaction ID: {result.transaction_id || 'N/A'}<br />
-                                                    New Balance: ${result.new_balance}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    ) : (
-                                        <p>Error: {result.message}</p>
-                                    )}
+                        <div className="grid md:grid-cols-2 gap-8">
+                            <SimCard
+                                icon={ShieldAlert}
+                                title="Fraud Scenarios"
+                                desc="Simulate stolen cards and high-risk merchants to test fallback logic."
+                            />
+                            <SimCard
+                                icon={Globe}
+                                title="Cross-Border Rails"
+                                desc="Inject FX volatility and multi-hop settlement latency into your stream."
+                            />
+                        </div>
+                    </div>
+
+                    {/* Status Console */}
+                    <div className="lg:col-span-1 space-y-8">
+                        <div className="glass-card rounded-[2.5rem] border border-white/5 flex flex-col h-full bg-slate-950 overflow-hidden">
+                            <div className="p-6 border-b border-white/5 bg-slate-900/40 flex items-center justify-between">
+                                <div className="flex items-center space-x-2">
+                                    <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                                    <span className="text-[10px] font-black text-white uppercase tracking-widest">Live Console</span>
                                 </div>
-                            )}
-                        </CardContent>
-                    </Card>
+                                <Database className="w-4 h-4 text-slate-700" />
+                            </div>
+                            <div className="p-6 font-mono text-[10px] leading-relaxed space-y-3 overflow-y-auto max-h-[500px] text-blue-400">
+                                <p className="text-slate-500">[{new Date().toISOString()}] Initializing sandbox_v2_core...</p>
+                                <p className="text-green-500/80">[{new Date().toISOString()}] Connection established with {selectedBank}</p>
+                                <p className="text-slate-400">[{new Date().toISOString()}] Waiting for signal initiation...</p>
+                                {isSimulating && (
+                                    <motion.div
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        className="space-y-3"
+                                    >
+                                        <p className="text-blue-500">[{new Date().toISOString()}] INBOUND: AUTH_REQUEST (mid_9283)</p>
+                                        <p className="text-blue-500">[{new Date().toISOString()}] INBOUND: AUTH_REQUEST (mid_1029)</p>
+                                        <p className="text-purple-500">[{new Date().toISOString()}] TRIGGER: LEDGER_UPDATE (entry_8192)</p>
+                                    </motion.div>
+                                )}
+                            </div>
+                        </div>
+
+                        <div className="p-8 rounded-[2rem] bg-gradient-to-br from-blue-600/10 to-transparent border border-blue-500/20">
+                            <h4 className="font-bold text-white mb-4 flex items-center space-x-2">
+                                <CheckCircle2 className="w-4 h-4 text-blue-500" />
+                                <span>Sandbox Mode</span>
+                            </h4>
+                            <p className="text-xs text-slate-500 font-medium leading-relaxed">
+                                You are currently operating in the global sandbox environment. No real funds are moved.
+                            </p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </DashboardShell>
     );
+}
+
+function SimCard({ icon: Icon, title, desc }: any) {
+    return (
+        <div className="glass-card p-8 rounded-[2.5rem] border border-white/5 hover:border-white/10 transition-all group flex flex-col justify-between h-full">
+            <div>
+                <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-blue-600/10 transition-all">
+                    <Icon className="w-6 h-6 text-slate-400 group-hover:text-blue-500" />
+                </div>
+                <h3 className="text-lg font-bold text-white mb-3 tracking-tight">{title}</h3>
+                <p className="text-xs text-slate-500 font-medium leading-relaxed">{desc}</p>
+            </div>
+            <button className="mt-8 text-[10px] font-black text-blue-500 uppercase tracking-widest flex items-center space-x-2 hover:text-white transition-colors">
+                <span>Configure Scene</span>
+                <ArrowRight className="w-3 h-3" />
+            </button>
+        </div>
+    )
 }

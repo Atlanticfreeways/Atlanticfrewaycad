@@ -78,6 +78,36 @@ class ComplianceService {
             throw error;
         }
     }
+
+    /**
+     * Checks if a user is compliant for card issuance
+     * 1. KYC status must be 'approved'
+     * 2. Sanctions check must pass (Mocked)
+     */
+    async checkComplianceForIssuance(userId) {
+        const query = 'SELECT kyc_tier, status FROM users JOIN kyc_verifications ON users.id = kyc_verifications.user_id WHERE users.id = $1 ORDER BY kyc_verifications.created_at DESC LIMIT 1';
+        const result = await this.db.query(query, [userId]);
+        const kyc = result.rows[0];
+
+        if (!kyc || kyc.status !== 'approved') {
+            throw new Error(`User not KYC approved. Current status: ${kyc?.status || 'not_started'}`);
+        }
+
+        // Mocking a sanctions check against an external list
+        const isSanctioned = await this.mockSanctionsCheck(userId);
+        if (isSanctioned) {
+            throw new Error('User failed sanctions screening');
+        }
+
+        return true;
+    }
+
+    async mockSanctionsCheck(userId) {
+        // In reality, this would call a provider like LexisNexis or Dow Jones
+        // For our audit demonstration, we'll just log that it happened
+        logger.info('Performing automated sanctions screening (Mock)', { userId, providers: ['OFAC', 'HMT', 'EU'] });
+        return false; // Default to pass for demo
+    }
 }
 
 module.exports = ComplianceService;

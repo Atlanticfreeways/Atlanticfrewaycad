@@ -48,6 +48,24 @@ class JWTService {
       throw new AuthenticationError('Invalid or expired refresh token');
     }
   }
+
+  generateMFAToken(user) {
+    const payload = {
+      id: user.id,
+      mfaPending: true
+    };
+    return jwt.sign(payload, this.secret, { expiresIn: '10m' });
+  }
+
+  verifyMFAToken(token) {
+    try {
+      const decoded = jwt.verify(token, this.secret);
+      if (!decoded.mfaPending) throw new Error('Not an MFA token');
+      return decoded;
+    } catch (error) {
+      throw new AuthenticationError('Invalid or expired MFA token');
+    }
+  }
 }
 
 module.exports = new JWTService();

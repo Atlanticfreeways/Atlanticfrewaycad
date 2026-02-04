@@ -11,7 +11,15 @@ router.use(csrfProtection);
 
 router.post('/verify', asyncHandler(async (req, res) => {
   const { tier, documents } = req.body;
-  const kycService = new KYCService(req.repositories);
+  const kycService = req.services.kyc;
+
+  if (tier !== 'basic' && kycService.adapter) {
+    // For higher tiers, use external provider
+    const result = await kycService.initiateVerification(req.user.id, tier);
+    return res.status(201).json(result);
+  }
+
+  // Fallback to manual/documents submission for basic or if no adapter
   const verification = await kycService.submitVerification(req.user.id, tier, documents);
   res.status(201).json({ success: true, verification });
 }));
@@ -26,8 +34,8 @@ router.get('/limits', asyncHandler(async (req, res) => {
   const user = await req.repositories.user.findById(req.user.id);
   const kycService = new KYCService(req.repositories);
   const limits = kycService.getTierLimits(user.kyc_tier);
-  res.json({ 
-    success: true, 
+  res.json({
+    success: true,
     tier: user.kyc_tier,
     limits,
     spent: user.monthly_spent,

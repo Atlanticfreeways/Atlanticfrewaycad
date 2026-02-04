@@ -11,6 +11,7 @@ const { sanitizeInput } = require('./src/utils/sanitize');
 // Import database
 const dbConnection = require('./src/database/connection');
 const UserRepository = require('./src/database/repositories/UserRepository');
+const LedgerRepository = require('./src/database/repositories/LedgerRepository');
 const CompanyRepository = require('./src/database/repositories/CompanyRepository');
 const CardRepository = require('./src/database/repositories/CardRepository');
 const TransactionRepository = require('./src/database/repositories/TransactionRepository');
@@ -46,6 +47,10 @@ const io = new Server(server, {
 });
 
 const JWTService = require('./src/services/auth/JWTService');
+const NotificationService = require('./src/services/NotificationService');
+
+// Initialize Notification Service (Socket.io)
+const notificationService = new NotificationService(io);
 
 io.use((socket, next) => {
   const token = socket.handshake.auth.token;
@@ -119,7 +124,8 @@ const initializeDatabase = async () => {
     wallet: new WalletRepository(pgPool),
     spendingControl: new SpendingControlRepository(pgPool),
     partner: new PartnerRepository(pgPool),
-    referral: new ReferralRepository(pgPool)
+    referral: new ReferralRepository(pgPool),
+    ledger: new LedgerRepository(pgPool)
   };
 };
 
@@ -146,22 +152,54 @@ app.use(async (req, res, next) => {
         conversionLogger: conversionLogger
       });
 
-      app.locals.services = {
-        partner: new PartnerService(app.locals.repositories),
-        exchangeRate: exchangeRateService,
-        conversionLogger: conversionLogger,
-        commission: commissionService
-      };
-    }
-    // Initialize JIT Funding Service with services
-    if (!app.locals.jitFundingService) {
-      const JITFundingService = require('./src/services/JITFundingService');
-      app.locals.jitFundingService = new JITFundingService(app.locals.repositories, app.locals.services);
-    }
+      const OnfidoAdapter = require('./src/services/kyc/OnfidoAdapter');
+      const kycAdapter = new OnfidoAdapter();
+      const KYCService = require('./src/services/KYCService');
+      const LedgerService = require('./src/services/LedgerService');
+      const StatementService = require('./src/services/StatementService');
+      const ReconciliationService = require('./src/services/ReconciliationService');
+      const FraudDetectionService = require('./src/services/FraudDetectionService');
+      const FraudRuleRepository = require('./src/database/repositories/FraudRuleRepository');
 
-    req.repositories = app.locals.repositories;
-    req.services = app.locals.services;
-    req.jitFundingService = app.locals.jitFundingService;
+      const EventAuditService = require('./src/services/EventAuditService');
+
+      const auditService = new EventAuditService(app.locals.repositories);
+
+      const ComplianceService = require('./src/services/ComplianceService');
+
+      const fraudRuleRepo = new FraudRuleRepository(dbConnection.getPostgres());
+      const fraudService = new FraudDetectionService(app.locals.repositories, fraudRuleRepo);
+      const statementService = new StatementService(app.locals.repositories);
+      const reconciliationService = new ReconciliationService(
+        { reconciliation: app.locals.repositories.reconciliation, ledger: app.locals.repositories.ledger },
+        { notification: notificationService }
+      );
+
+      app.locals.services = {
+        kyc: new KYCService(app.locals.repositories, kycAdapter, auditService, notificationService),
+        exchangeRate: exchangeRateService,
+        commissions: commissionService,
+        ledger: new LedgerService(app.locals.repositories, notificationService),
+        audit: auditService,
+        compliance: new ComplianceService(dbConnection.getPostgres()),
+        notification: notificationService,
+        statement: new StatementService(app.locals.repositories)
+      };
+
+      // Initialize Cron Service (Scheduling)
+      const CronService = require('./src/services/CronService');
+      const cronService = new CronService(app.locals.services, app.locals.repositories);
+
+      // Initialize JIT Funding Service with services
+      if (!app.locals.jitFundingService) {
+        const JITFundingService = require('./src/services/JITFundingService');
+        app.locals.jitFundingService = new JITFundingService(app.locals.repositories, app.locals.services);
+      }
+
+      req.repositories = app.locals.repositories;
+      req.services = app.locals.services;
+      req.jitFundingService = app.locals.jitFundingService;
+    }
   } catch (err) {
     logger.error('Database initialization failed', { error: err.message });
     req.repositories = null;
@@ -250,13 +288,13 @@ app.use((req, res) => {
   res.status(404).json({ error: 'Endpoint not found' });
 });
 
-server.listen(PORT, async () => {
+server.listen(PORT, '127.0.0.1', async () => {
   logger.info('Atlanticfrewaycard Platform started', {
     port: PORT,
     environment: process.env.NODE_ENV || 'development'
   });
   console.log(`\n🚀 Atlanticfrewaycard Platform`);
-  console.log(`📡 Server: http://localhost:${PORT}`);
+  console.log(`📡 Server: http://127.0.0.1:${PORT}`);
   console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`\n✓ Security Enhancements Active`);
   console.log(`  - CSRF Protection: Enabled`);
