@@ -96,80 +96,143 @@ export default function CardsPage() {
     );
 }
 
+import { SetLimitsModal } from "@/components/modals/SetLimitsModal";
+import { MerchantControlsModal } from "@/components/modals/MerchantControlsModal";
+import { LocationRestrictionsModal } from "@/components/modals/LocationRestrictionsModal";
+
 function CardItem({ card, index }: { card: any, index: number }) {
     const [isRevealed, setIsRevealed] = useState(false);
     const [isFrozen, setIsFrozen] = useState(card.status === 'inactive');
 
+    // Modal States
+    const [showLimits, setShowLimits] = useState(false);
+    const [showMerchant, setShowMerchant] = useState(false);
+    const [showLocation, setShowLocation] = useState(false);
+    const [showMenu, setShowMenu] = useState(false);
+
     return (
-        <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.1 }}
-            className="glass-card rounded-[2.5rem] border border-white/5 p-8 relative overflow-hidden group hover:shadow-[0_0_50px_rgba(37,99,235,0.1)] transition-all duration-700"
-        >
-            {/* Geometric Background Detail */}
-            <div className="absolute -top-12 -right-12 w-48 h-48 bg-blue-600/5 blur-[60px] rounded-full group-hover:bg-blue-600/10 transition-colors" />
+        <>
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+                className="glass-card rounded-[2.5rem] border border-white/5 p-8 relative overflow-visible group hover:shadow-[0_0_50px_rgba(37,99,235,0.1)] transition-all duration-700"
+            >
+                {/* Geometric Background Detail */}
+                <div className="absolute -top-12 -right-12 w-48 h-48 bg-blue-600/5 blur-[60px] rounded-full group-hover:bg-blue-600/10 transition-colors" />
 
-            <div className="relative z-10">
-                <div className="flex justify-between items-start mb-12">
-                    <div>
-                        <div className="flex items-center space-x-2 mb-1">
-                            <span className="text-[10px] font-black text-blue-500 uppercase tracking-[0.2em]">Enterprise Platinum</span>
-                            {isFrozen && <span className="text-[10px] font-black text-red-500 bg-red-500/10 px-2 py-0.5 rounded-full uppercase tracking-widest">Frozen</span>}
+                <div className="relative z-10">
+                    <div className="flex justify-between items-start mb-12">
+                        <div>
+                            <div className="flex items-center space-x-2 mb-1">
+                                <span className="text-[10px] font-black text-blue-500 uppercase tracking-[0.2em]">Enterprise Platinum</span>
+                                {isFrozen && <span className="text-[10px] font-black text-red-500 bg-red-500/10 px-2 py-0.5 rounded-full uppercase tracking-widest">Frozen</span>}
+                            </div>
+                            <h3 className="text-2xl font-black text-white tracking-tight">{card.name}</h3>
                         </div>
-                        <h3 className="text-2xl font-black text-white tracking-tight">{card.name}</h3>
+                        <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center">
+                            <CreditCard className="w-6 h-6 text-slate-400 group-hover:text-white transition-colors" />
+                        </div>
                     </div>
-                    <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center">
-                        <CreditCard className="w-6 h-6 text-slate-400 group-hover:text-white transition-colors" />
-                    </div>
-                </div>
 
-                <div className="space-y-6 mb-10">
-                    <div className="flex items-center justify-between">
-                        <div className="font-mono text-2xl text-slate-100 tracking-[0.2em]">
-                            {isRevealed ? "4242 8812 0092 1083" : "•••• •••• •••• " + card.last_four}
+                    <div className="space-y-6 mb-10">
+                        <div className="flex items-center justify-between">
+                            <div className="font-mono text-2xl text-slate-100 tracking-[0.2em]">
+                                {isRevealed ? "4242 8812 0092 1083" : "•••• •••• •••• " + card.last_four}
+                            </div>
+                            <button
+                                onClick={() => setIsRevealed(!isRevealed)}
+                                className="p-2 rounded-xl bg-white/5 text-slate-500 hover:text-white transition-all"
+                            >
+                                {isRevealed ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                            </button>
                         </div>
+
+                        <div className="flex items-center justify-between">
+                            <div className="space-y-1">
+                                <p className="text-[10px] font-bold text-slate-600 uppercase tracking-widest">Card Holder</p>
+                                <p className="text-sm font-bold text-slate-300">NORTHERN SYSTEMS INC</p>
+                            </div>
+                            <div className="space-y-1 text-right">
+                                <p className="text-[10px] font-bold text-slate-600 uppercase tracking-widest">Expires</p>
+                                <p className="text-sm font-bold text-slate-300">12/28</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center gap-3 relative">
                         <button
-                            onClick={() => setIsRevealed(!isRevealed)}
-                            className="p-2 rounded-xl bg-white/5 text-slate-500 hover:text-white transition-all"
+                            onClick={() => setIsFrozen(!isFrozen)}
+                            className={cn(
+                                "flex-1 py-4 rounded-2xl font-bold text-sm tracking-tight transition-all flex items-center justify-center space-x-2",
+                                isFrozen ? "bg-green-600/10 text-green-500 hover:bg-green-600 hover:text-white" : "bg-red-600/10 text-red-500 hover:bg-red-600 hover:text-white"
+                            )}
                         >
-                            {isRevealed ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                            {isFrozen ? <Unlock className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
+                            <span>{isFrozen ? 'Unfreeze' : 'Freeze'}</span>
                         </button>
-                    </div>
+                        <button
+                            onClick={() => setShowLimits(true)}
+                            className="flex-1 py-4 bg-white/5 hover:bg-white/10 text-white rounded-2xl font-bold text-sm tracking-tight transition-all flex items-center justify-center space-x-2 border border-white/5"
+                        >
+                            <Settings2 className="w-4 h-4" />
+                            <span>Limits</span>
+                        </button>
+                        <div className="relative">
+                            <button
+                                onClick={() => setShowMenu(!showMenu)}
+                                className="p-4 bg-white/5 hover:bg-white/10 text-white rounded-2xl transition-all border border-white/5"
+                            >
+                                <MoreHorizontal className="w-5 h-5" />
+                            </button>
 
-                    <div className="flex items-center justify-between">
-                        <div className="space-y-1">
-                            <p className="text-[10px] font-bold text-slate-600 uppercase tracking-widest">Card Holder</p>
-                            <p className="text-sm font-bold text-slate-300">NORTHERN SYSTEMS INC</p>
-                        </div>
-                        <div className="space-y-1 text-right">
-                            <p className="text-[10px] font-bold text-slate-600 uppercase tracking-widest">Expires</p>
-                            <p className="text-sm font-bold text-slate-300">12/28</p>
+                            {/* Dropdown Menu */}
+                            <AnimatePresence>
+                                {showMenu && (
+                                    <motion.div
+                                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                                        exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                                        className="absolute bottom-full right-0 mb-2 w-48 bg-slate-900 border border-white/10 rounded-xl shadow-xl overflow-hidden z-20"
+                                    >
+                                        <button
+                                            onClick={() => { setShowMerchant(true); setShowMenu(false); }}
+                                            className="w-full text-left px-4 py-3 text-sm text-slate-300 hover:bg-white/5 hover:text-white font-medium flex items-center gap-2"
+                                        >
+                                            <ShieldCheck className="w-4 h-4" /> Merchant Rules
+                                        </button>
+                                        <button
+                                            onClick={() => { setShowLocation(true); setShowMenu(false); }}
+                                            className="w-full text-left px-4 py-3 text-sm text-slate-300 hover:bg-white/5 hover:text-white font-medium flex items-center gap-2"
+                                        >
+                                            <ArrowUpRight className="w-4 h-4" /> Location Rules
+                                        </button>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
                         </div>
                     </div>
                 </div>
+            </motion.div>
 
-                <div className="flex items-center gap-3">
-                    <button
-                        onClick={() => setIsFrozen(!isFrozen)}
-                        className={cn(
-                            "flex-1 py-4 rounded-2xl font-bold text-sm tracking-tight transition-all flex items-center justify-center space-x-2",
-                            isFrozen ? "bg-green-600/10 text-green-500 hover:bg-green-600 hover:text-white" : "bg-red-600/10 text-red-500 hover:bg-red-600 hover:text-white"
-                        )}
-                    >
-                        {isFrozen ? <Unlock className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
-                        <span>{isFrozen ? 'Unfreeze Card' : 'Freeze Card'}</span>
-                    </button>
-                    <button className="flex-1 py-4 bg-white/5 hover:bg-white/10 text-white rounded-2xl font-bold text-sm tracking-tight transition-all flex items-center justify-center space-x-2 border border-white/5">
-                        <Settings2 className="w-4 h-4" />
-                        <span>Manage Limits</span>
-                    </button>
-                    <button className="p-4 bg-white/5 hover:bg-white/10 text-white rounded-2xl transition-all border border-white/5">
-                        <MoreHorizontal className="w-5 h-5" />
-                    </button>
-                </div>
-            </div>
-        </motion.div>
+            {/* Modals */}
+            <SetLimitsModal
+                isOpen={showLimits}
+                onClose={() => setShowLimits(false)}
+                cardId={card.id}
+                currentLimits={{ dailyLimit: card.limit, monthlyLimit: 0, transactionLimit: 0 }}
+            />
+            <MerchantControlsModal
+                isOpen={showMerchant}
+                onClose={() => setShowMerchant(false)}
+                cardId={card.id}
+            />
+            <LocationRestrictionsModal
+                isOpen={showLocation}
+                onClose={() => setShowLocation(false)}
+                cardId={card.id}
+            />
+        </>
     )
 }
 

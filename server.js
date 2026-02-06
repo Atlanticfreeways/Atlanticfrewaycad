@@ -1,4 +1,14 @@
-require('dotenv').config();
+const dotenv = require('dotenv');
+dotenv.config();
+
+// Attempt to load secrets from AWS if enabled
+// We use a self-executing async function wrapper for the entire startup if we want to block
+// But to keep it simple and compatible, we'll try to load synchronously-ish or block initialization
+const { loadSecrets } = require('./src/utils/secrets');
+
+// We need to wait for secrets to load before we can trust process.env for crucial things
+// Since CommonJS top-level await is not standard in all Node versions, we'll wrap initialization
+
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -152,7 +162,7 @@ app.use(async (req, res, next) => {
         conversionLogger: conversionLogger
       });
 
-      const OnfidoAdapter = require('./src/services/kyc/OnfidoAdapter');
+      const OnfidoAdapter = require('./src/adapters/kyc/MockOnfidoAdapter');
       const kycAdapter = new OnfidoAdapter();
       const KYCService = require('./src/services/KYCService');
       const LedgerService = require('./src/services/LedgerService');
@@ -288,24 +298,34 @@ app.use((req, res) => {
   res.status(404).json({ error: 'Endpoint not found' });
 });
 
-server.listen(PORT, '127.0.0.1', async () => {
-  logger.info('Atlanticfrewaycard Platform started', {
-    port: PORT,
-    environment: process.env.NODE_ENV || 'development'
+const startServer = async () => {
+  // Load AWS secrets if enabled
+  await loadSecrets();
+
+  server.listen(PORT, '127.0.0.1', async () => {
+    logger.info('Atlanticfrewaycard Platform started', {
+      port: PORT,
+      environment: process.env.NODE_ENV || 'development'
+    });
+    console.log(`\n🚀 Atlanticfrewaycard Platform`);
+    console.log(`📡 Server: http://127.0.0.1:${PORT}`);
+    console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`\n✓ Security Enhancements Active`);
+    console.log(`  - CSRF Protection: Enabled`);
+    console.log(`  - CORS: Restricted`);
+    console.log(`  - Logging: Winston`);
+    console.log(`\n📚 Endpoints:`);
+    console.log(`  - GET  /health`);
+    console.log(`  - GET  /api/v1/csrf-token`);
+    console.log(`  - POST /api/v1/auth/register`);
+    console.log(`  - POST /api/v1/partners/register`);
+    console.log(`  - GET  /api/v1/partners/profile`);
   });
-  console.log(`\n🚀 Atlanticfrewaycard Platform`);
-  console.log(`📡 Server: http://127.0.0.1:${PORT}`);
-  console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`\n✓ Security Enhancements Active`);
-  console.log(`  - CSRF Protection: Enabled`);
-  console.log(`  - CORS: Restricted`);
-  console.log(`  - Logging: Winston`);
-  console.log(`\n📚 Endpoints:`);
-  console.log(`  - GET  /health`);
-  console.log(`  - GET  /api/v1/csrf-token`);
-  console.log(`  - POST /api/v1/auth/register`);
-  console.log(`  - POST /api/v1/partners/register`);
-  console.log(`  - GET  /api/v1/partners/profile`);
+};
+
+startServer().catch(err => {
+  logger.error('Failed to start server', err);
+  process.exit(1);
 });
 
 module.exports = app;

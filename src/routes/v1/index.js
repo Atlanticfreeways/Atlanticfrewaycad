@@ -13,14 +13,18 @@ const router = express.Router();
 router.use('/auth', authRoutes);
 router.use('/business', businessRoutes);
 router.use('/business', require('./business/bulkIssuance'));
-router.use('/business/finance', require('./business/finance'));
-router.use('/business/team', require('./business/team')); // NEW: Team management
+router.use('/business/approvals', require('./business/approvals')); // NEW: Approval workflows
+router.use('/business/finance', require('./business/finance')); // Existing
+router.use('/business/finance', require('./business/budgets')); // NEW: Budget tracking
+router.use('/business/accounting', require('./business/accounting')); // NEW: Accounting integrations
 router.use('/personal', personalRoutes);
 router.use('/shared', sharedRoutes);
 router.use('/kyc', kycRoutes);
 router.use('/events', eventsRoutes);
 router.use('/partners', partnerRoutes);
 router.use('/dashboard', dashboardRoutes);
+router.use('/transactions', require('./transactions')); // NEW: Advanced transaction search & export
+router.use('/disputes', require('./disputes')); // NEW: Dispute management
 router.use('/rates', require('./rates'));
 router.use('/config', require('./config'));
 router.use('/compliance', require('./compliance'));

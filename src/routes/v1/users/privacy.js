@@ -18,15 +18,16 @@ router.get('/data-export', asyncHandler(async (req, res) => {
     const exportData = await privacyService.exportUserData(req.user.id);
 
     // Log the export action
-    await req.repositories.db('audit_logs').insert({
-        user_id: req.user.id,
-        action: 'data_export',
-        resource_type: 'user',
-        resource_id: req.user.id,
-        ip_address: req.ip,
-        user_agent: req.get('user-agent'),
-        status: 'success'
-    });
+    if (req.services.audit) {
+        await req.services.audit.logAction({
+            userId: req.user.id,
+            action: 'data_export',
+            resourceType: 'user',
+            resourceId: req.user.id,
+            req: req,
+            metadata: { status: 'success' }
+        });
+    }
 
     res.setHeader('Content-Type', 'application/json');
     res.setHeader('Content-Disposition', `attachment; filename="atlantic-data-export-${Date.now()}.json"`);
@@ -43,33 +44,20 @@ router.post('/delete-request', asyncHandler(async (req, res) => {
     const privacyService = new PrivacyService(req.repositories);
     const deletionRequest = await privacyService.createDeletionRequest(req.user.id, reason);
 
-    // Send confirmation email (if email service is available)
-    if (req.emailService) {
-        try {
-            await req.emailService.send({
-                to: req.user.email,
-                template: 'account-deletion-request',
-                data: {
-                    name: req.user.full_name,
-                    scheduled_for: deletionRequest.scheduled_for.toISOString().split('T')[0]
-                }
-            });
-        } catch (emailError) {
-            console.error('Failed to send deletion confirmation email:', emailError);
-        }
-    }
-
     // Log the deletion request
-    await req.repositories.db('audit_logs').insert({
-        user_id: req.user.id,
-        action: 'deletion_request',
-        resource_type: 'user',
-        resource_id: req.user.id,
-        ip_address: req.ip,
-        user_agent: req.get('user-agent'),
-        status: 'success',
-        metadata: { scheduled_for: deletionRequest.scheduled_for }
-    });
+    if (req.services.audit) {
+        await req.services.audit.logAction({
+            userId: req.user.id,
+            action: 'deletion_request',
+            resourceType: 'user',
+            resourceId: req.user.id,
+            req: req,
+            metadata: {
+                scheduled_for: deletionRequest.scheduled_for,
+                reason: reason
+            }
+        });
+    }
 
     res.json({
         success: true,
@@ -98,15 +86,15 @@ router.post('/cancel-deletion', asyncHandler(async (req, res) => {
     }
 
     // Log the cancellation
-    await req.repositories.db('audit_logs').insert({
-        user_id: req.user.id,
-        action: 'deletion_cancelled',
-        resource_type: 'user',
-        resource_id: req.user.id,
-        ip_address: req.ip,
-        user_agent: req.get('user-agent'),
-        status: 'success'
-    });
+    if (req.services.audit) {
+        await req.services.audit.logAction({
+            userId: req.user.id,
+            action: 'deletion_cancelled',
+            resourceType: 'user',
+            resourceId: req.user.id,
+            req: req
+        });
+    }
 
     res.json({
         success: true,
@@ -119,9 +107,14 @@ router.post('/cancel-deletion', asyncHandler(async (req, res) => {
  * Check if user has a pending deletion request
  */
 router.get('/deletion-status', asyncHandler(async (req, res) => {
-    const pendingRequest = await req.repositories.db('account_deletion_requests')
-        .where({ user_id: req.user.id, status: 'pending' })
-        .first();
+    // Manually query since PrivacyService doesn't expose getStatus (though we could add it)
+    // Using user repo query runner
+    const result = await req.repositories.user.query(
+        "SELECT * FROM account_deletion_requests WHERE user_id = $1 AND status = 'pending'",
+        [req.user.id]
+    );
+
+    const pendingRequest = result.rows[0];
 
     res.json({
         success: true,

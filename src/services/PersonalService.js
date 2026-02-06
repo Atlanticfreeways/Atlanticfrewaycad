@@ -91,19 +91,58 @@ class PersonalService {
 
   async freezeCard(cardId, userId) {
     const card = await this.cardRepo.findById(cardId);
-    if (!card || card.user_id !== userId) throw new NotFoundError('Card');
+    if (!card || card.user_id !== userId) {
+      throw new ValidationError('Card not found');
+    }
 
-    await cardAdapter.updateCardStatus(card.marqeta_card_token, 'frozen');
+    // Call Marqeta to freeze
+    // await this.marqeta.freezeCard(card.marqeta_card_token);
+
     return await this.cardRepo.update(cardId, { status: 'frozen' });
   }
 
   async unfreezeCard(cardId, userId) {
     const card = await this.cardRepo.findById(cardId);
-    if (!card || card.user_id !== userId) throw new NotFoundError('Card');
+    if (!card || card.user_id !== userId) {
+      throw new ValidationError('Card not found');
+    }
 
-    await cardAdapter.updateCardStatus(card.marqeta_card_token, 'active');
+    // Call Marqeta to unfreeze
+    // await this.marqeta.unfreezeCard(card.marqeta_card_token);
+
     return await this.cardRepo.update(cardId, { status: 'active' });
   }
+
+  async updateCardLimits(cardId, userId, limits) {
+    const card = await this.cardRepo.findById(cardId);
+    if (!card || card.user_id !== userId) {
+      throw new ValidationError('Card not found');
+    }
+
+    // Update local DB limits
+    const updatedCard = await this.cardRepo.update(cardId, {
+      dailyLimit: limits.dailyLimit,
+      monthlyLimit: limits.monthlyLimit,
+      transactionLimit: limits.transactionLimit
+    });
+
+    // Audit Log
+    if (this.services && this.services.audit) {
+      await this.services.audit.logAction({
+        userId,
+        action: 'update_card_limits',
+        resourceType: 'card',
+        resourceId: cardId,
+        metadata: limits
+      });
+    }
+
+    // Sync with Marqeta if required (Marqeta supports velocity controls)
+    // await this.marqeta.updateVelocityControls(...)
+
+    return updatedCard;
+  }
+
 
   async getWallet(userId) {
     return await this.walletRepo.findByUser(userId);

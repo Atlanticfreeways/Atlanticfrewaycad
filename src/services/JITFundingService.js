@@ -129,7 +129,7 @@ class JITFundingService {
       }
 
       // Step 3: Check spending limits
-      const spendingCheck = await this.checkSpendingLimits(cardId, amount);
+      const spendingCheck = await this.checkSpendingLimits(card, amount);
       if (!spendingCheck.allowed) {
         addStep('Spending_Limits', 'FAIL', { reason: spendingCheck.reason });
         await this.saveTrace(marqetaToken, traceSteps, false, Date.now() - startTime);
@@ -148,7 +148,18 @@ class JITFundingService {
       }
       addStep('Merchant_Controls', 'PASS', { merchant: merchantName });
 
-      // Step 5: Check balance
+      // Step 5: Check Location Restrictions (NEW)
+      // Assuming transactionData contains merchantCountry (Marqeta provides this)
+      const locationCheck = await this.checkLocationRestrictions(cardId, transactionData.merchantCountry);
+      if (!locationCheck.allowed) {
+        addStep('Location_Controls', 'FAIL', { country: transactionData.merchantCountry, reason: locationCheck.reason });
+        await this.saveTrace(marqetaToken, traceSteps, false, Date.now() - startTime);
+        this.sendTransactionAlert(user.id, false, amount, merchantName, locationCheck.reason);
+        return this.createDecision(false, locationCheck.reason, startTime);
+      }
+      addStep('Location_Controls', 'PASS', { country: transactionData.merchantCountry });
+
+      // Step 6: Check balance
       if (user.account_type === 'personal') {
         const balanceCheck = await this.checkBalance(user.id, amount, 'USD');
         if (!balanceCheck.allowed) {
@@ -207,50 +218,134 @@ class JITFundingService {
     }
   }
 
-  async checkSpendingLimits(cardId, amount) {
+  async checkSpendingLimits(card, amount) {
     try {
-      const controls = await this.spendingControlRepo.findByCard(cardId);
-      if (!controls) {
-        return { allowed: true };
+      // 1. Single Transaction Limit
+      if (card.transaction_limit && amount > card.transaction_limit) {
+        return { allowed: false, reason: 'TRANSACTION_LIMIT_EXCEEDED' };
       }
 
-      if (controls.daily_limit && (controls.current_daily_spend + amount) > controls.daily_limit) {
-        return { allowed: false, reason: 'DAILY_LIMIT_EXCEEDED' };
+      // 2. Daily Limit
+      if (card.daily_limit) {
+        const dailySpent = await this.transactionRepo.getDailySpending(card.id, new Date());
+        if ((dailySpent + amount) > card.daily_limit) {
+          return { allowed: false, reason: 'DAILY_LIMIT_EXCEEDED' };
+        }
       }
 
-      if (controls.monthly_limit && (controls.current_monthly_spend + amount) > controls.monthly_limit) {
-        return { allowed: false, reason: 'MONTHLY_LIMIT_EXCEEDED' };
+      // 3. Monthly Limit
+      if (card.monthly_limit) {
+        const now = new Date();
+        const monthlySpent = await this.transactionRepo.getMonthlySpending(card.id, now.getFullYear(), now.getMonth() + 1);
+        if ((monthlySpent + amount) > card.monthly_limit) {
+          return { allowed: false, reason: 'MONTHLY_LIMIT_EXCEEDED' };
+        }
       }
 
       return { allowed: true };
     } catch (e) {
       console.error('Spend control check failed:', e);
-      return { allowed: true }; // Default to pass if controls fail? Or fail safe?
+      // In strict mode, we should fail fail-safe, but for now we log and allow (or risk blocking valid txs on DB error)
+      // Choosing to BLOCK on error for safety
+      return { allowed: false, reason: 'SYSTEM_ERROR_CHECKING_LIMITS' };
     }
   }
 
   async checkMerchantRestrictions(cardId, merchantName, merchantCategory) {
-    // In a real implementation, we'd check against a whitelist/blacklist
-    return { allowed: true };
+    try {
+      const controls = await this.userRepo.pool.query(
+        `SELECT * FROM card_merchant_controls WHERE card_id = $1`,
+        [cardId]
+      );
+      const rules = controls.rows;
+
+      if (rules.length === 0) return { allowed: true };
+
+      // Logic: 
+      // 1. If there are ALLOW rules, we are in Whitelist mode.
+      // 2. If there are only BLOCK rules, we are in Blacklist mode.
+
+      const allowRules = rules.filter(r => r.control_type === 'allow');
+      const blockRules = rules.filter(r => r.control_type === 'block');
+
+      // Whitelist Check
+      if (allowRules.length > 0) {
+        const isAllowed = allowRules.some(r => {
+          if (r.merchant_name && merchantName && r.merchant_name.toLowerCase() === merchantName.toLowerCase()) return true;
+          if (r.mcc && merchantCategory && r.mcc === merchantCategory) return true;
+          if (r.category_group && this.matchCategoryGroup(r.category_group, merchantCategory)) return true;
+          return false;
+        });
+        if (!isAllowed) return { allowed: false, reason: 'MERCHANT_NOT_ALLOWED' };
+      }
+
+      // Blacklist Check
+      if (blockRules.length > 0) {
+        const isBlocked = blockRules.some(r => {
+          if (r.merchant_name && merchantName && r.merchant_name.toLowerCase() === merchantName.toLowerCase()) return true;
+          if (r.mcc && merchantCategory && r.mcc === merchantCategory) return true;
+          if (r.category_group && this.matchCategoryGroup(r.category_group, merchantCategory)) return true;
+          return false;
+        });
+        if (isBlocked) return { allowed: false, reason: 'MERCHANT_BLOCKED' };
+      }
+
+      return { allowed: true };
+
+    } catch (err) {
+      console.error('Merchant restriction check failed', err);
+      return { allowed: true }; // Fail open for now
+    }
   }
 
-  async checkBalance(userId, amount, currency) {
-    const WalletRepository = require('../database/repositories/WalletRepository');
-    const walletRepo = new WalletRepository(this.userRepo.pool);
-    const balance = await walletRepo.getBalance(userId, currency);
+  async checkLocationRestrictions(cardId, countryCode) {
+    if (!countryCode) return { allowed: true }; // No country data? Allow.
 
-    if (balance < amount) {
-      return { allowed: false, reason: 'INSUFFICIENT_FUNDS' };
+    try {
+      const controls = await this.userRepo.pool.query(
+        `SELECT * FROM card_location_controls WHERE card_id = $1`,
+        [cardId]
+      );
+      const rules = controls.rows;
+      if (rules.length === 0) return { allowed: true };
+
+      const allowRules = rules.filter(r => r.control_type === 'allow');
+      const blockRules = rules.filter(r => r.control_type === 'block');
+
+      if (allowRules.length > 0) {
+        // Whitelist mode: Must be in allowed list
+        const isAllowed = allowRules.some(r => r.country_code === countryCode);
+        if (!isAllowed) return { allowed: false, reason: 'COUNTRY_NOT_ALLOWED' };
+      }
+
+      if (blockRules.length > 0) {
+        // Blacklist mode: Must NOT be in blocked list
+        const isBlocked = blockRules.some(r => r.country_code === countryCode);
+        if (isBlocked) return { allowed: false, reason: 'COUNTRY_BLOCKED' };
+      }
+
+      return { allowed: true };
+
+    } catch (err) {
+      console.error('Location restriction check failed', err);
+      return { allowed: true };
     }
-    return { allowed: true };
+  }
+
+  matchCategoryGroup(group, mcc) {
+    // Simplistic mapping. Requires extensive MCC list.
+    // Example: 'travel' -> airlines, hotels, trains
+    const groups = {
+      'travel': ['4111', '4112', '4121', '4131', '4411', '4511', '4722', '7011'],
+      'food': ['5812', '5813', '5814', '5411'],
+      'gambling': ['7995', '7800', '7801', '7802']
+    };
+    return groups[group] ? groups[group].includes(mcc) : false;
   }
 
   async updateSpendingCounters(cardId, amount) {
-    try {
-      await this.spendingControlRepo.updateCounters(cardId, amount);
-    } catch (e) {
-      console.error('Failed to update spending counters:', e);
-    }
+    // Deprecated: We calculate sum on the fly now. 
+    // Keeping method signature for compatibility if needed.
   }
 
   async callGoRPC(data) {

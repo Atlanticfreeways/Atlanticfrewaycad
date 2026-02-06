@@ -17,7 +17,9 @@ import {
     HelpCircle,
     Users,
     Shield,
-    X
+    X,
+    ClipboardCheck,
+    BookOpen
 } from "lucide-react";
 import clsx from "clsx";
 
@@ -31,6 +33,9 @@ const navigation = [
 
 const businessNav = [
     { name: "Team", href: "/business/team", icon: Users },
+    { name: "Approvals", href: "/business/approvals", icon: ClipboardCheck },
+    { name: "Accounting", href: "/business/accounting", icon: BookOpen },
+    { name: "Analytics", href: "/business/analytics", icon: BarChart3 },
     { name: "Bulk Issuance", href: "/business/bulk-issuance", icon: CreditCard },
 ];
 

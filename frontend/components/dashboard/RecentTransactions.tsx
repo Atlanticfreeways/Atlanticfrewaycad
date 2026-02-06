@@ -57,7 +57,23 @@ const transactions = [
     }
 ];
 
+import { DisputeModal } from '@/components/modals/DisputeModal';
+import { useState } from 'react';
+import { AlertCircle } from 'lucide-react';
+
 export function RecentTransactions() {
+    const [disputeTx, setDisputeTx] = useState<any>(null);
+
+    const handleDisputeClick = (e: React.MouseEvent, tx: any) => {
+        e.stopPropagation();
+        setDisputeTx({
+            id: tx.id,
+            merchant_name: tx.merchant,
+            amount: parseFloat(tx.amount.replace(/[^0-9.-]+/g, "")),
+            created_at: new Date().toISOString()
+        });
+    };
+
     return (
         <div className="glass-card rounded-[2rem] border border-white/5 overflow-hidden shadow-2xl transition-all duration-500">
             <div className="p-8 border-b border-white/5 flex items-center justify-between bg-slate-900/40">
@@ -83,7 +99,7 @@ export function RecentTransactions() {
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: idx * 0.1 }}
                         key={transaction.id}
-                        className="p-6 hover:bg-white/[0.02] transition-all flex items-center justify-between group cursor-pointer"
+                        className="p-6 hover:bg-white/[0.02] transition-all flex items-center justify-between group cursor-pointer relative"
                     >
                         <div className="flex items-center space-x-5">
                             <div className={cn('w-12 h-12 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110 duration-500', transaction.iconColor)}>
@@ -98,18 +114,29 @@ export function RecentTransactions() {
                                 </div>
                             </div>
                         </div>
-                        <div className="text-right">
-                            <p className="text-xl font-black text-white tracking-tighter">{transaction.amount}</p>
-                            <div className="flex items-center justify-end space-x-2 mt-1">
-                                <span className={cn(
-                                    "text-[10px] font-black uppercase tracking-[0.2em]",
-                                    transaction.status === 'completed' ? 'text-green-500' :
-                                        transaction.status === 'pending' ? 'text-amber-500' : 'text-slate-500'
-                                )}>
-                                    {transaction.status}
-                                </span>
-                                <ArrowUpRight className="w-3 h-3 text-slate-700 group-hover:text-blue-400 transition-colors" />
+                        <div className="text-right flex items-center gap-4">
+                            <div>
+                                <p className="text-xl font-black text-white tracking-tighter">{transaction.amount}</p>
+                                <div className="flex items-center justify-end space-x-2 mt-1">
+                                    <span className={cn(
+                                        "text-[10px] font-black uppercase tracking-[0.2em]",
+                                        transaction.status === 'completed' ? 'text-green-500' :
+                                            transaction.status === 'pending' ? 'text-amber-500' : 'text-slate-500'
+                                    )}>
+                                        {transaction.status}
+                                    </span>
+                                    <ArrowUpRight className="w-3 h-3 text-slate-700 group-hover:text-blue-400 transition-colors" />
+                                </div>
                             </div>
+
+                            {/* Dispute Action */}
+                            <button
+                                onClick={(e) => handleDisputeClick(e, transaction)}
+                                className="opacity-0 group-hover:opacity-100 p-2 hover:bg-red-500/20 rounded-full text-slate-500 hover:text-red-500 transition-all"
+                                title="File Dispute"
+                            >
+                                <AlertCircle className="w-4 h-4" />
+                            </button>
                         </div>
                     </motion.div>
                 ))}
@@ -118,6 +145,14 @@ export function RecentTransactions() {
             <div className="p-6 bg-slate-900/20 text-center">
                 <button className="text-[10px] font-bold text-slate-500 hover:text-white uppercase tracking-[0.3em] transition-all">View Full Workspace Ledger</button>
             </div>
+
+            {disputeTx && (
+                <DisputeModal
+                    isOpen={!!disputeTx}
+                    onClose={() => setDisputeTx(null)}
+                    transaction={disputeTx}
+                />
+            )}
         </div>
     );
 }

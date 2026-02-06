@@ -3,26 +3,58 @@ class EventAuditService {
     this.userRepo = repositories.user;
   }
 
-  async logEvent(eventType, data, userId = null) {
+  /**
+   * Log an actionable event to the audit log
+   * @param {Object} params
+   * @param {string} params.userId
+   * @param {string} params.action - e.g. 'login', 'create_card', 'export_data'
+   * @param {string} params.resourceType - e.g. 'user', 'card', 'transaction'
+   * @param {string} params.resourceId - ID of the resource affected
+   * @param {Object} params.metadata - Additional data
+   * @param {Object} params.req - Express request object (optional) to extract IP/UA
+   */
+  async logAction({ userId, action, resourceType, resourceId, metadata = {}, req = null }) {
     const query = `
-      INSERT INTO event_audit_log (event_type, event_data, user_id, ip_address, user_agent)
-      VALUES ($1, $2, $3, $4, $5)
+      INSERT INTO audit_logs (user_id, action, resource_type, resource_id, ip_address, user_agent, status, metadata)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
       RETURNING *
     `;
-    
-    const result = await this.userRepo.query(query, [
-      eventType,
-      JSON.stringify(data),
-      userId,
-      data.ipAddress || null,
-      data.userAgent || null
-    ]);
 
-    return result.rows[0];
+    const ipAddress = req ? req.ip : (metadata.ipAddress || null);
+    const userAgent = req ? req.get('user-agent') : (metadata.userAgent || null);
+    const status = metadata.status || 'success';
+
+    try {
+      const result = await this.userRepo.query(query, [
+        userId || null,
+        action,
+        resourceType,
+        resourceId || null,
+        ipAddress,
+        userAgent,
+        status,
+        JSON.stringify(metadata)
+      ]);
+      return result.rows[0];
+    } catch (err) {
+      console.error('Failed to write audit log:', err);
+      // Don't throw, just log error so main flow isn't interrupted
+      return null;
+    }
   }
 
-  async getEventHistory(filters = {}) {
-    let query = 'SELECT * FROM event_audit_log WHERE 1=1';
+  // Legacy method support (mapped to new schema)
+  async logEvent(eventType, data, userId = null) {
+    return this.logAction({
+      userId,
+      action: eventType,
+      resourceType: 'system',
+      metadata: data
+    });
+  }
+
+  async getEventHistory(filters = {}, limit = 100) {
+    let query = 'SELECT * FROM audit_logs WHERE 1=1';
     const params = [];
     let paramCount = 1;
 
@@ -32,19 +64,19 @@ class EventAuditService {
       paramCount++;
     }
 
-    if (filters.eventType) {
-      query += ` AND event_type = $${paramCount}`;
-      params.push(filters.eventType);
+    if (filters.action) {
+      query += ` AND action = $${paramCount}`;
+      params.push(filters.action);
       paramCount++;
     }
 
-    if (filters.startDate) {
-      query += ` AND created_at >= $${paramCount}`;
-      params.push(filters.startDate);
+    if (filters.resourceType) {
+      query += ` AND resource_type = $${paramCount}`;
+      params.push(filters.resourceType);
       paramCount++;
     }
 
-    query += ' ORDER BY created_at DESC LIMIT 100';
+    query += ` ORDER BY created_at DESC LIMIT ${parseInt(limit) || 100}`;
 
     const result = await this.userRepo.query(query, params);
     return result.rows;

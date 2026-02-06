@@ -2,6 +2,8 @@ const express = require('express');
 const JWTService = require('../services/auth/JWTService');
 const PasswordService = require('../services/auth/PasswordService');
 const MFAService = require('../services/auth/MFAService');
+const SessionService = require('../services/SessionService');
+const SecurityService = require('../services/SecurityService');
 const { ValidationError, AuthenticationError } = require('../errors/AppError');
 const { authLimiter } = require('../middleware/rateLimiter');
 const asyncHandler = require('../utils/asyncHandler');
@@ -10,41 +12,18 @@ const { validate, schemas } = require('../middleware/validation');
 
 const router = express.Router();
 
+const COOKIE_OPTIONS = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: 'Strict',
+  maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+};
+
 /**
  * @swagger
  * /auth/register:
  *   post:
  *     summary: Register new user
- *     tags: [Authentication]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - email
- *               - password
- *               - firstName
- *               - lastName
- *               - accountType
- *             properties:
- *               email:
- *                 type: string
- *               password:
- *                 type: string
- *               firstName:
- *                 type: string
- *               lastName:
- *                 type: string
- *               accountType:
- *                 type: string
- *                 enum: [business, personal]
- *     responses:
- *       201:
- *         description: User registered successfully
- *       400:
- *         description: Validation error
  */
 router.post('/register', authLimiter, csrfProtection, validate(schemas.register), asyncHandler(async (req, res) => {
   const { email, password, firstName, lastName, accountType } = req.body;
@@ -78,8 +57,21 @@ router.post('/register', authLimiter, csrfProtection, validate(schemas.register)
     await req.repositories.wallet.create(user.id);
   }
 
+  // Generate tokens
   const tokens = JWTService.generateTokenPair(user);
-  res.status(201).json({ success: true, user, tokens });
+
+  // Store session
+  const sessionService = new SessionService(req.repositories);
+  await sessionService.createSession(user.id, tokens.refreshToken, req.ip, req.get('user-agent'));
+
+  // Set cookie
+  res.cookie('refreshToken', tokens.refreshToken, COOKIE_OPTIONS);
+
+  res.status(201).json({
+    success: true,
+    user,
+    accessToken: tokens.accessToken
+  });
 }));
 
 /**
@@ -87,26 +79,6 @@ router.post('/register', authLimiter, csrfProtection, validate(schemas.register)
  * /auth/login:
  *   post:
  *     summary: Login user
- *     tags: [Authentication]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - email
- *               - password
- *             properties:
- *               email:
- *                 type: string
- *               password:
- *                 type: string
- *     responses:
- *       200:
- *         description: Login successful
- *       401:
- *         description: Invalid credentials
  */
 router.post('/login', authLimiter, csrfProtection, validate(schemas.login), asyncHandler(async (req, res) => {
   const { email, password } = req.body;
@@ -115,18 +87,26 @@ router.post('/login', authLimiter, csrfProtection, validate(schemas.login), asyn
     throw new ValidationError('Email and password required');
   }
 
+  const securityService = new SecurityService(req.repositories);
+  await securityService.checkLockout(email, req.ip);
+
   const userRepo = req.repositories.user;
   const user = await userRepo.findByEmail(email);
+
   if (!user) {
+    await securityService.logLoginAttempt(email, req.ip, false);
     throw new AuthenticationError('Invalid credentials');
   }
 
   const valid = await PasswordService.compare(password, user.password_hash);
   if (!valid) {
+    await securityService.logLoginAttempt(email, req.ip, false);
     throw new AuthenticationError('Invalid credentials');
   }
 
-  // Check if MFA is enabled
+  // Success
+  await securityService.logLoginAttempt(email, req.ip, true);
+
   if (user.two_factor_enabled) {
     const mfaToken = JWTService.generateMFAToken(user);
     return res.json({
@@ -137,16 +117,27 @@ router.post('/login', authLimiter, csrfProtection, validate(schemas.login), asyn
   }
 
   const tokens = JWTService.generateTokenPair(user);
+
+  // Store session
+  const sessionService = new SessionService(req.repositories);
+  await sessionService.createSession(user.id, tokens.refreshToken, req.ip, req.get('user-agent'));
+
+  // Set cookie
+  res.cookie('refreshToken', tokens.refreshToken, COOKIE_OPTIONS);
+
   delete user.password_hash;
   delete user.two_factor_secret;
   delete user.two_factor_backup_codes;
 
-  res.json({ success: true, user, tokens });
+  res.json({
+    success: true,
+    user,
+    accessToken: tokens.accessToken
+  });
 }));
 
 /**
  * POST /auth/mfa/verify
- * Secondary step of login if MFA is enabled
  */
 router.post('/mfa/verify', authLimiter, csrfProtection, asyncHandler(async (req, res) => {
   const { code, mfaToken } = req.body;
@@ -155,10 +146,7 @@ router.post('/mfa/verify', authLimiter, csrfProtection, asyncHandler(async (req,
     throw new ValidationError('Code and MFA token required');
   }
 
-  // 1. Verify mfaToken
   const decoded = JWTService.verifyMFAToken(mfaToken);
-
-  // 2. Fetch user
   const userRepo = req.repositories.user;
   const user = await userRepo.findById(decoded.id);
 
@@ -166,17 +154,15 @@ router.post('/mfa/verify', authLimiter, csrfProtection, asyncHandler(async (req,
     throw new AuthenticationError('MFA not active or user not found');
   }
 
-  // 3. Verify MFA code OR backup code
   const isTokenValid = MFAService.verifyToken(user.two_factor_secret, code);
-
   let isBackupValid = false;
   let backupCodes = JSON.parse(user.two_factor_backup_codes || '[]');
+
   if (!isTokenValid) {
     const codeIndex = backupCodes.indexOf(code.toUpperCase());
     if (codeIndex !== -1) {
       isBackupValid = true;
       backupCodes.splice(codeIndex, 1);
-      // Update backup codes in DB
       await userRepo.update(user.id, { two_factor_backup_codes: JSON.stringify(backupCodes) });
     }
   }
@@ -185,31 +171,71 @@ router.post('/mfa/verify', authLimiter, csrfProtection, asyncHandler(async (req,
     throw new AuthenticationError('Invalid MFA code');
   }
 
-  // 4. Issue full tokens
   const tokens = JWTService.generateTokenPair(user);
+
+  // Store session
+  const sessionService = new SessionService(req.repositories);
+  await sessionService.createSession(user.id, tokens.refreshToken, req.ip, req.get('user-agent'));
+
+  // Set cookie
+  res.cookie('refreshToken', tokens.refreshToken, COOKIE_OPTIONS);
+
   delete user.password_hash;
   delete user.two_factor_secret;
   delete user.two_factor_backup_codes;
 
-  res.json({ success: true, user, tokens });
+  res.json({
+    success: true,
+    user,
+    accessToken: tokens.accessToken
+  });
 }));
 
 router.post('/refresh', csrfProtection, asyncHandler(async (req, res) => {
-  const { refreshToken } = req.body;
+  const refreshToken = req.cookies.refreshToken || req.body.refreshToken;
 
   if (!refreshToken) {
     throw new ValidationError('Refresh token required');
   }
 
-  const decoded = JWTService.verifyRefreshToken(refreshToken);
+  let decoded;
+  try {
+    decoded = JWTService.verifyRefreshToken(refreshToken);
+  } catch (err) {
+    throw new AuthenticationError('Invalid refresh token');
+  }
+
+  const sessionService = new SessionService(req.repositories);
   const user = await req.repositories.user.findById(decoded.id);
 
   if (!user) {
     throw new AuthenticationError('User not found');
   }
 
-  const tokens = JWTService.generateTokenPair(user);
-  res.json({ success: true, tokens });
+  // Generate NEW tokens
+  const newTokens = JWTService.generateTokenPair(user);
+
+  // Rotate Session (Verification happens inside)
+  await sessionService.rotateSession(refreshToken, newTokens.refreshToken, req.ip, req.get('user-agent'));
+
+  // Update cookie
+  res.cookie('refreshToken', newTokens.refreshToken, COOKIE_OPTIONS);
+
+  res.json({
+    success: true,
+    accessToken: newTokens.accessToken
+  });
+}));
+
+router.post('/logout', asyncHandler(async (req, res) => {
+  const refreshToken = req.cookies.refreshToken || req.body.refreshToken;
+  if (refreshToken) {
+    const sessionService = new SessionService(req.repositories);
+    await sessionService.logout(refreshToken);
+  }
+
+  res.clearCookie('refreshToken');
+  res.json({ success: true, message: 'Logged out' });
 }));
 
 module.exports = router;

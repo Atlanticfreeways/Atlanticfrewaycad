@@ -50,6 +50,43 @@ class NotificationService {
         this.io.emit(event, payload);
         logger.info(`Broadcasted ${event} to all users`);
     }
+    /**
+     * Send an email notification (Mock)
+     */
+    async sendEmail(toVec, subject, body) {
+        // In production: await sendgrid.send(...)
+        logger.info(`[MOCK EMAIL] To: ${toVec} | Subject: ${subject} | Body: ${body}`);
+        return true;
+    }
+
+    /**
+     * Send a Slack notification (Mock)
+     */
+    async sendSlack(webhookUrl, message) {
+        // In production: await axios.post(webhookUrl, { text: message })
+        logger.info(`[MOCK SLACK] To: ${webhookUrl} | Message: ${message}`);
+        return true;
+    }
+
+    /**
+     * Send a multi-channel alert
+     */
+    async sendBudgetAlert(budget, percentUsed, amountUsed) {
+        const message = `🚨 Budget Alert: ${budget.name} has reached ${percentUsed.toFixed(1)}% usage ($${amountUsed.toLocaleString()}).`;
+
+        // 1. Send via Socket (In-app)
+        // Need to find which users subscribe to this budget? For now generic broadacst or skip.
+
+        // 2. Send Emails
+        if (budget.notify_emails && budget.notify_emails.length > 0) {
+            await this.sendEmail(budget.notify_emails, `Budget Alert: ${budget.name}`, message);
+        }
+
+        // 3. Send Slack
+        if (budget.slack_webhook_url) {
+            await this.sendSlack(budget.slack_webhook_url, message);
+        }
+    }
 }
 
 module.exports = NotificationService;

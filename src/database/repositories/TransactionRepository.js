@@ -33,17 +33,100 @@ class TransactionRepository extends BaseRepository {
     return result.rows[0];
   }
 
-  async findByUser(userId, limit = 50) {
-    const query = `
+  async findByUser(userId, filters = {}) {
+    let query = `
       SELECT t.*, c.last_four, c.card_type 
       FROM transactions t 
       JOIN cards c ON t.card_id = c.id 
       WHERE t.user_id = $1 
-      ORDER BY t.created_at DESC 
-      LIMIT $2
     `;
-    const result = await this.query(query, [userId, limit]);
+    const params = [userId];
+    let paramCount = 2;
+
+    if (filters.startDate) {
+      query += ` AND t.created_at >= $${paramCount}`;
+      params.push(filters.startDate);
+      paramCount++;
+    }
+
+    if (filters.endDate) {
+      query += ` AND t.created_at <= $${paramCount}`;
+      params.push(filters.endDate);
+      paramCount++;
+    }
+
+    if (filters.minAmount) {
+      query += ` AND t.amount >= $${paramCount}`;
+      params.push(filters.minAmount);
+      paramCount++;
+    }
+
+    if (filters.maxAmount) {
+      query += ` AND t.amount <= $${paramCount}`;
+      params.push(filters.maxAmount);
+      paramCount++;
+    }
+
+    if (filters.merchant) {
+      query += ` AND t.merchant_name ILIKE $${paramCount}`;
+      params.push(`%${filters.merchant}%`);
+      paramCount++;
+    }
+
+    if (filters.cardId) {
+      query += ` AND t.card_id = $${paramCount}`;
+      params.push(filters.cardId);
+      paramCount++;
+    }
+
+    if (filters.status) {
+      query += ` AND t.status = $${paramCount}`;
+      params.push(filters.status);
+      paramCount++;
+    }
+
+    // Sort
+    query += ` ORDER BY t.created_at DESC`;
+
+    // Pagination
+    const limit = filters.limit ? parseInt(filters.limit) : 50;
+    const page = filters.page ? parseInt(filters.page) : 1;
+    const offset = (page - 1) * limit;
+
+    query += ` LIMIT $${paramCount} OFFSET $${paramCount + 1}`;
+    params.push(limit, offset);
+
+    const result = await this.query(query, params);
+
+    // Get total count for pagination metadata
+    // Note: In high-volume systems, COUNT(*) can be slow. Consider an estimate or separate query.
+    // For now, this suffices for a start-up scale.
+    // To do this efficiently, we'd need a separate count query with the same WHERE clause.
+    // For now we just return the rows.
+
     return result.rows;
+  }
+
+  async countByUser(userId, filters = {}) {
+    let query = `
+        SELECT COUNT(*) as total
+        FROM transactions t 
+        JOIN cards c ON t.card_id = c.id 
+        WHERE t.user_id = $1 
+      `;
+    const params = [userId];
+    let paramCount = 2;
+
+    if (filters.startDate) { query += ` AND t.created_at >= $${paramCount}`; params.push(filters.startDate); paramCount++; }
+    if (filters.endDate) { query += ` AND t.created_at <= $${paramCount}`; params.push(filters.endDate); paramCount++; }
+    if (filters.minAmount) { query += ` AND t.amount >= $${paramCount}`; params.push(filters.minAmount); paramCount++; }
+    if (filters.maxAmount) { query += ` AND t.amount <= $${paramCount}`; params.push(filters.maxAmount); paramCount++; }
+    if (filters.merchant) { query += ` AND t.merchant_name ILIKE $${paramCount}`; params.push(`%${filters.merchant}%`); paramCount++; }
+    if (filters.cardId) { query += ` AND t.card_id = $${paramCount}`; params.push(filters.cardId); paramCount++; }
+    if (filters.status) { query += ` AND t.status = $${paramCount}`; params.push(filters.status); paramCount++; }
+
+    const result = await this.query(query, params);
+    return parseInt(result.rows[0].total);
   }
 
   async findByCard(cardId, limit = 50) {

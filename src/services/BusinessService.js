@@ -95,6 +95,19 @@ class BusinessService {
     return await this.companyRepo.getStats(companyId);
   }
 
+  async getCards(companyId) {
+    return await this.cardRepo.findByCompany(companyId);
+  }
+
+  async getCardsByUser(userId, companyId) {
+    // Ensure user belongs to company
+    const user = await this.userRepo.findById(userId);
+    if (!user || user.company_id !== companyId) {
+      throw new NotFoundError('User not found in company');
+    }
+    return await this.cardRepo.findByUser(userId);
+  }
+
   async getSpendingAnalytics(companyId, filters = {}) {
     const days = filters.days || 30;
 

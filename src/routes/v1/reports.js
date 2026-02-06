@@ -196,4 +196,33 @@ router.get('/spending', asyncHandler(async (req, res) => {
     });
 }));
 
+// ... existing code ...
+
+const AnalyticsService = require('../../services/AnalyticsService');
+
+/**
+ * Business Analytics Routes
+ */
+
+router.get('/business/spending-by-category', asyncHandler(async (req, res) => {
+    // Permission check: ensure user is admin/finance
+    // const { error } = validateRole(req.user, ['admin', 'manager']);
+
+    const service = new AnalyticsService({ db: req.repositories.db });
+    const data = await service.getSpendingByCategory(req.user.company_id, req.query);
+    res.json({ success: true, data });
+}));
+
+router.get('/business/spending-by-employee', asyncHandler(async (req, res) => {
+    const service = new AnalyticsService({ db: req.repositories.db });
+    const data = await service.getSpendingByEmployee(req.user.company_id, req.query);
+    res.json({ success: true, data });
+}));
+
+router.get('/business/spending-trends', asyncHandler(async (req, res) => {
+    const service = new AnalyticsService({ db: req.repositories.db });
+    const data = await service.getSpendingTrends(req.user.company_id, req.query);
+    res.json({ success: true, data });
+}));
+
 module.exports = router;
