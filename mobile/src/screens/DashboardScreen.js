@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, RefreshControl, ActivityIndicator } from 'react-native';
 import api from '../config/api';
+import OfflineService from '../services/OfflineService';
 
 export default function DashboardScreen() {
     const [data, setData] = useState(null);
@@ -9,10 +10,17 @@ export default function DashboardScreen() {
 
     const fetchData = async () => {
         try {
+            // Try network first
             const response = await api.get('/business/finance/overview');
             setData(response.data);
+            OfflineService.saveDashboardData(response.data); // Cache fresh data
         } catch (error) {
-            console.error('Failed to fetch dashboard data:', error);
+            console.warn('Network request failed, loading cache:', error);
+            // Fallback to cache
+            const cachedData = await OfflineService.getDashboardData();
+            if (cachedData) {
+                setData(cachedData);
+            }
         } finally {
             setLoading(false);
             setRefreshing(false);

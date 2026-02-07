@@ -10,6 +10,8 @@ RUN apk add --no-cache dumb-init
 
 COPY . .
 
+RUN mkdir -p logs && chown -R node:node logs
+
 USER node
 
 EXPOSE 3000

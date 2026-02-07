@@ -9,6 +9,8 @@ frontend/node_modules/
 .env.production
 .env.staging
 .env.required
+RENDER_COPY_PASTE.env
+.env.render.test
 
 # Build outputs
 dist/
@@ -75,9 +77,10 @@ docs/PROJECT_COMPLETE.md
 docs/STARTUP_GUIDE.md
 
 # Database files
-database/migrations/
-migrations/
-*.sql
+# (Not ignoring migrations as they are needed for production setup)
+# database/migrations/
+# migrations/
+# *.sql
 
 # Security & audit files
 audit-report.json
@@ -96,3 +99,5 @@ tests/integration/marqeta/
 
 
 
+.env.render.test
+RENDER_COPY_PASTE.env

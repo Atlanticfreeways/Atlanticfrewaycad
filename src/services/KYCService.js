@@ -56,22 +56,23 @@ class KYCService {
     }
 
     try {
-      // 1. Create applicant in external system
+      // 1. Create applicant/session in external system
       const externalId = await this.adapter.createApplicant(user);
 
-      // 2. Generate SDK token for frontend
+      // 2. Generate SDK token/client secret for frontend
       const sdkToken = await this.adapter.generateSdkToken(externalId);
 
       // 3. Create local record
+      const provider = process.env.KYC_PROVIDER || 'onfido';
       const query = `
         INSERT INTO kyc_verifications (user_id, tier, status, provider, external_id)
         VALUES ($1, $2, 'pending', $3, $4)
         RETURNING *
       `;
-      const result = await this.userRepo.query(query, [userId, tier, 'onfido', externalId]);
+      const result = await this.userRepo.query(query, [userId, tier, provider, externalId]);
 
       if (this.audit) {
-        await this.audit.logEvent('kyc_initiated', { userId, tier, externalId, provider: 'onfido' }, userId);
+        await this.audit.logEvent('kyc_initiated', { userId, tier, externalId, provider }, userId);
       }
 
       return {
@@ -158,6 +159,84 @@ class KYCService {
             userId: verification.user_id,
             tier: verification.tier,
             externalId: applicant_id,
+            reason: result
+          }, verification.user_id);
+        }
+      }
+    } else if (provider === 'stripe') {
+      const { type, data } = payload;
+
+      // Only process identity verification events
+      if (!type.startsWith('identity.verification_session.')) {
+        return;
+      }
+
+      const session = data.object;
+      const externalId = session.id;
+      const stripeStatus = session.status;
+
+      // Map Stripe status to internal status
+      let internalStatus = 'pending';
+      if (stripeStatus === 'verified') internalStatus = 'approved';
+      else if (stripeStatus === 'canceled') internalStatus = 'rejected';
+      else if (stripeStatus === 'requires_input') internalStatus = 'failed';
+
+      // Extract failure reason if any
+      const result = session.last_error ? session.last_error.message : null;
+
+      const query = `
+        SELECT * FROM kyc_verifications 
+        WHERE external_id = $1 
+        ORDER BY created_at DESC LIMIT 1
+      `;
+      const verificationResult = await this.userRepo.query(query, [externalId]);
+      const verification = verificationResult.rows[0];
+
+      if (!verification) {
+        logger.warn('KYC Webhook received for unknown applicant', { externalId });
+        return;
+      }
+
+      // Update verification record
+      await this.userRepo.query(`
+        UPDATE kyc_verifications 
+        SET status = $1, metadata = $2, completed_at = NOW(), updated_at = NOW()
+        WHERE id = $3
+      `, [internalStatus, JSON.stringify(payload), verification.id]);
+
+      // If approved, upgrade user tier
+      if (internalStatus === 'approved') {
+        const tier = verification.tier;
+        await this.userRepo.update(verification.user_id, {
+          kyc_tier: tier,
+          kyc_verified_at: new Date(),
+          monthly_limit: KYC_TIERS[tier] ? KYC_TIERS[tier].monthlyLimit : KYC_TIERS.basic.monthlyLimit
+        });
+
+        if (this.audit) {
+          await this.audit.logEvent('kyc_approved_auto', {
+            userId: verification.user_id,
+            externalId: externalId,
+            provider: 'stripe'
+          }, verification.user_id);
+        }
+
+        if (this.notification) {
+          this.notification.sendUserAlert(verification.user_id, 'kyc_status_updated', {
+            status: 'approved',
+            tier: tier,
+            message: `You have been verified for ${tier} tier!`
+          });
+        }
+
+        logger.info('User KYC upgraded via automated external check', { userId: verification.user_id, tier: tier });
+      } else if (internalStatus === 'rejected' || internalStatus === 'failed') {
+        if (this.audit) {
+          await this.audit.logEvent('kyc_rejected_auto', {
+            userId: verification.user_id,
+            tier: verification.tier,
+            externalId: externalId,
+            provider: 'stripe',
             reason: result
           }, verification.user_id);
         }

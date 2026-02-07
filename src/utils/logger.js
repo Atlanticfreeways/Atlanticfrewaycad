@@ -27,27 +27,31 @@ const logger = winston.createLogger({
   format: logFormat,
   defaultMeta: { service: 'atlanticfrewaycard' },
   transports: [
-    new winston.transports.File({
-      filename: path.join('logs', 'error.log'),
-      level: 'error',
-      maxsize: 5242880, // 5MB
-      maxFiles: 5
-    }),
-    new winston.transports.File({
-      filename: path.join('logs', 'combined.log'),
-      maxsize: 5242880,
-      maxFiles: 5
+    new winston.transports.Console({
+      format: process.env.NODE_ENV === 'production'
+        ? logFormat
+        : winston.format.combine(
+          winston.format.colorize(),
+          winston.format.simple()
+        )
     })
   ]
 });
 
-// Console logging for non-production
-if (process.env.NODE_ENV !== 'production') {
-  logger.add(new winston.transports.Console({
-    format: winston.format.combine(
-      winston.format.colorize(),
-      winston.format.simple()
-    )
+// Add File transports only if explicitly configured or in non-production environments
+// This avoids EACCES errors in cloud environments like Render
+if (process.env.ENABLE_FILE_LOGGING === 'true' || process.env.NODE_ENV !== 'production') {
+  logger.add(new winston.transports.File({
+    filename: path.join('logs', 'error.log'),
+    level: 'error',
+    maxsize: 5242880, // 5MB
+    maxFiles: 5
+  }));
+
+  logger.add(new winston.transports.File({
+    filename: path.join('logs', 'combined.log'),
+    maxsize: 5242880,
+    maxFiles: 5
   }));
 }
 

@@ -52,6 +52,7 @@ router.use('/admin', jitTracesRouter);
 router.use('/admin/reconcile', require('./admin/reconciliation'));
 router.use('/admin/audit-logs', require('./admin/auditLogs')); // NEW: Audit logs
 router.use('/banking', require('./banking'));
+router.use('/funding', require('./funding'));
 
 
 module.exports = router;

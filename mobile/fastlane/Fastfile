@@ -1,0 +1,31 @@
+default_platform(:ios)
+
+platform :ios do
+  desc "Push a new beta build to TestFlight"
+  lane :beta do
+    increment_build_number(xcodeproj: "AtlanticFreeway.xcodeproj")
+    build_app(workspace: "AtlanticFreeway.xcworkspace", scheme: "AtlanticFreeway")
+    upload_to_testflight
+  end
+
+  desc "Capture screenshots for the App Store"
+  lane :screenshots do
+    capture_ios_screenshots(
+      scheme: "AtlanticFreeway",
+      devices: [
+        "iPhone 14 Pro Max",
+        "iPhone 8 Plus",
+        "iPad Pro (12.9-inch) (6th generation)"
+      ],
+      output_directory: "./fastlane/screenshots"
+    )
+  end
+end
+
+platform :android do
+  desc "Deploy a new version to the Google Play"
+  lane :deploy do
+    gradle(task: "clean assembleRelease")
+    upload_to_play_store
+  end
+end

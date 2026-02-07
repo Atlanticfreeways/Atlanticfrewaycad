@@ -116,6 +116,19 @@ class WalletRepository extends BaseRepository {
     const result = await this.query(query, [JSON.stringify(addresses), userId]);
     return result.rows[0];
   }
+
+  async addBankAccount(userId, accountData) {
+    // Ensure we are appending to a JSONB array. 
+    // If bank_accounts is null, coalesce to empty array.
+    const query = `
+      UPDATE wallets 
+      SET bank_accounts = COALESCE(bank_accounts, '[]'::jsonb) || $1::jsonb, updated_at = NOW()
+      WHERE user_id = $2
+      RETURNING *
+    `;
+    const result = await this.query(query, [JSON.stringify([accountData]), userId]);
+    return result.rows[0];
+  }
 }
 
 module.exports = WalletRepository;

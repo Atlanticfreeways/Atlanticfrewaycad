@@ -19,7 +19,8 @@ import {
     Shield,
     X,
     ClipboardCheck,
-    BookOpen
+    BookOpen,
+    Wallet
 } from "lucide-react";
 import clsx from "clsx";
 
@@ -29,6 +30,7 @@ const navigation = [
     { name: "Transactions", href: "/transactions", icon: PieChart },
     { name: "Business", href: "/business", icon: Building2 },
     { name: "Reports", href: "/reports", icon: BarChart3 },
+    { name: "Funding", href: "/funding", icon: Wallet },
 ];
 
 const businessNav = [

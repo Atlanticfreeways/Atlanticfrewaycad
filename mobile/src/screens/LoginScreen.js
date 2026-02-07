@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Alert } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import api, { setAuthToken } from '../config/api';
+import BiometricService from '../services/BiometricService'; // TODO: Ensure file exists
 // import { useUserStore } from '../store/userStore'; // TODO
 
 export default function LoginScreen({ navigation }) {
@@ -73,6 +75,21 @@ export default function LoginScreen({ navigation }) {
                     <Text style={styles.buttonText}>Sign In</Text>
                 )}
             </TouchableOpacity>
+
+            <TouchableOpacity
+                style={styles.bioButton}
+                onPress={async () => {
+                    const success = await BiometricService.authenticate();
+                    if (success) {
+                        Alert.alert('Authenticated', 'Biometrics verified. (Mock login would proceed here)');
+                        // In real app, retrieve stored token from secure storage
+                        navigation.replace('Main');
+                    }
+                }}
+            >
+                <Ionicons name="finger-print" size={24} color="#94a3b8" />
+                <Text style={styles.bioButtonText}>Use Face ID / Touch ID</Text>
+            </TouchableOpacity>
         </View>
     );
 }
@@ -125,4 +142,16 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: 'bold',
     },
+    bioButton: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginTop: 20,
+        gap: 8,
+    },
+    bioButtonText: {
+        color: '#94a3b8',
+        fontSize: 14,
+        fontWeight: '600'
+    }
 });

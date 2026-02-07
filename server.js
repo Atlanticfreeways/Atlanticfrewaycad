@@ -162,7 +162,13 @@ app.use(async (req, res, next) => {
         conversionLogger: conversionLogger
       });
 
-      const OnfidoAdapter = require('./src/adapters/kyc/MockOnfidoAdapter');
+      const kycProvider = process.env.KYC_PROVIDER || 'onfido';
+      let OnfidoAdapter;
+      if (kycProvider === 'stripe') {
+        OnfidoAdapter = require('./src/adapters/kyc/StripeIdentityAdapter');
+      } else {
+        OnfidoAdapter = require('./src/adapters/kyc/MockOnfidoAdapter');
+      }
       const kycAdapter = new OnfidoAdapter();
       const KYCService = require('./src/services/KYCService');
       const LedgerService = require('./src/services/LedgerService');
@@ -302,7 +308,7 @@ const startServer = async () => {
   // Load AWS secrets if enabled
   await loadSecrets();
 
-  server.listen(PORT, '127.0.0.1', async () => {
+  server.listen(PORT, '0.0.0.0', async () => {
     logger.info('Atlanticfrewaycard Platform started', {
       port: PORT,
       environment: process.env.NODE_ENV || 'development'

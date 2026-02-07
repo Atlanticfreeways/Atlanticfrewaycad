@@ -1,4 +1,10 @@
-# API Documentation
+# Atlantic Freeway Card API Documentation
+
+> **Version**: 1.0.0  
+> **Last Updated**: 2026-02-07
+
+This document provides comprehensive API reference for the Atlantic Freeway Card platform, including authentication, business operations, personal banking, KYC verification, and webhooks.
+
 
 ## Base URL
 ```
