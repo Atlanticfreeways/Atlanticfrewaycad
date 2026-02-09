@@ -2,18 +2,16 @@
 
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { api } from '@/lib/api';
 import { Upload, FileSpreadsheet, CheckCircle, AlertOctagon, RefreshCw, FileText } from 'lucide-react';
 import { DashboardShell } from '@/components/layout/DashboardShell';
 
 export default function ReconciliationPage() {
-    const [history, setHistory] = useState([]);
+    const [history, setHistory] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [processing, setProcessing] = useState(false);
     const [file, setFile] = useState<File | null>(null);
@@ -22,8 +20,8 @@ export default function ReconciliationPage() {
 
     const fetchHistory = async () => {
         try {
-            const response = await api.get('/admin/reconcile/history');
-            setHistory(response.data);
+            const response = await api.get<{ data: any[] }>('/admin/reconcile/history');
+            setHistory(response.data || []);
         } catch (error) {
             console.error('Failed to fetch history', error);
         } finally {
@@ -89,7 +87,7 @@ export default function ReconciliationPage() {
 
         } catch (error: any) {
             console.error('Reconciliation failed', error);
-            alert(error.response?.data?.error || error.message || 'Reconciliation failed');
+            // alert(error.response?.data?.error || error.message || 'Reconciliation failed');
         } finally {
             setProcessing(false);
         }
@@ -99,7 +97,6 @@ export default function ReconciliationPage() {
         <DashboardShell>
             <div className="flex flex-col gap-8 p-8 max-w-7xl mx-auto">
                 <div>
-                    {/* ... content ... */}
                     <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
                         <FileSpreadsheet className="h-8 w-8 text-blue-600" />
                         Settlement Reconciliation
@@ -173,57 +170,61 @@ export default function ReconciliationPage() {
                         </CardHeader>
                         <CardContent>
                             {report && (
-                                <Alert className={`mb-6 ${report.status === 'MATCHED' ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
-                                    {report.status === 'MATCHED' ? <CheckCircle className="h-4 w-4 text-green-600" /> : <AlertOctagon className="h-4 w-4 text-red-600" />}
-                                    <AlertTitle className={report.status === 'MATCHED' ? 'text-green-800' : 'text-red-800'}>
-                                        Run Complete: {report.status}
-                                    </AlertTitle>
-                                    <AlertDescription className="text-slate-600">
-                                        Processed {report.settlementId}. Discrepancies found: <strong>{report.discrepancies}</strong>.
-                                    </AlertDescription>
-                                </Alert>
+                                <div className={`mb-6 p-4 rounded border flex items-start gap-3 ${report.status === 'MATCHED' ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
+                                    {report.status === 'MATCHED' ? <CheckCircle className="h-5 w-5 text-green-600" /> : <AlertOctagon className="h-5 w-5 text-red-600" />}
+                                    <div>
+                                        <h5 className={`font-medium ${report.status === 'MATCHED' ? 'text-green-800' : 'text-red-800'}`}>
+                                            Run Complete: {report.status}
+                                        </h5>
+                                        <div className="text-sm text-slate-600 mt-1">
+                                            Processed {report.settlementId}. Discrepancies found: <strong>{report.discrepancies}</strong>.
+                                        </div>
+                                    </div>
+                                </div>
                             )}
 
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead>Date</TableHead>
-                                        <TableHead>Status</TableHead>
-                                        <TableHead>Total Settled</TableHead>
-                                        <TableHead>Tx Count</TableHead>
-                                        <TableHead className="text-right">Last Updated</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {loading ? (
-                                        <TableRow>
-                                            <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">Loading history...</TableCell>
-                                        </TableRow>
-                                    ) : history.length === 0 ? (
-                                        <TableRow>
-                                            <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">No reconciliation history found.</TableCell>
-                                        </TableRow>
-                                    ) : (
-                                        history.map((item: any) => (
-                                            <TableRow key={item.id}>
-                                                <TableCell className="font-medium">
-                                                    {new Date(item.settlement_date).toLocaleDateString()}
-                                                </TableCell>
-                                                <TableCell>
-                                                    <Badge variant={item.status === 'MATCHED' ? 'default' : item.status === 'PROCESSING' ? 'secondary' : 'destructive'}>
-                                                        {item.status}
-                                                    </Badge>
-                                                </TableCell>
-                                                <TableCell>${parseFloat(item.total_amount_settled).toFixed(2)}</TableCell>
-                                                <TableCell>{item.total_transactions_count}</TableCell>
-                                                <TableCell className="text-right text-muted-foreground text-xs">
-                                                    {new Date(item.updated_at).toLocaleString()}
-                                                </TableCell>
-                                            </TableRow>
-                                        ))
-                                    )}
-                                </TableBody>
-                            </Table>
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-sm text-left">
+                                    <thead className="text-muted-foreground border-b">
+                                        <tr>
+                                            <th className="h-12 px-4 align-middle font-medium">Date</th>
+                                            <th className="h-12 px-4 align-middle font-medium">Status</th>
+                                            <th className="h-12 px-4 align-middle font-medium">Total Settled</th>
+                                            <th className="h-12 px-4 align-middle font-medium">Tx Count</th>
+                                            <th className="h-12 px-4 align-middle font-medium text-right">Last Updated</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-border">
+                                        {loading ? (
+                                            <tr>
+                                                <td colSpan={5} className="p-4 text-center text-muted-foreground">Loading history...</td>
+                                            </tr>
+                                        ) : history.length === 0 ? (
+                                            <tr>
+                                                <td colSpan={5} className="p-4 text-center text-muted-foreground">No reconciliation history found.</td>
+                                            </tr>
+                                        ) : (
+                                            history.map((item: any) => (
+                                                <tr key={item.id} className="hover:bg-muted/50">
+                                                    <td className="p-4 font-medium">
+                                                        {new Date(item.settlement_date).toLocaleDateString()}
+                                                    </td>
+                                                    <td className="p-4">
+                                                        <Badge variant={item.status === 'MATCHED' ? 'default' : item.status === 'PROCESSING' ? 'secondary' : 'destructive'}>
+                                                            {item.status}
+                                                        </Badge>
+                                                    </td>
+                                                    <td className="p-4">${parseFloat(item.total_amount_settled || '0').toFixed(2)}</td>
+                                                    <td className="p-4">{item.total_transactions_count}</td>
+                                                    <td className="p-4 text-right text-muted-foreground text-xs">
+                                                        {new Date(item.updated_at).toLocaleString()}
+                                                    </td>
+                                                </tr>
+                                            ))
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
                         </CardContent>
                     </Card>
                 </div>

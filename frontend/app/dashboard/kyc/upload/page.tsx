@@ -1,6 +1,6 @@
 'use client';
 import React, { useState } from 'react';
-import { getApiUrl } from '../../../utils/urlValidator';
+import { getApiUrl } from '@/utils/urlValidator';
 
 export default function KYCUpload() {
   const [tier, setTier] = useState('ace');
