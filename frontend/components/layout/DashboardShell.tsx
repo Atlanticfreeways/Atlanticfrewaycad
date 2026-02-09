@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { Sidebar } from "./Sidebar";
 import { Menu, Search, Bell, Zap, Sparkles, ChevronRight } from "lucide-react";
 import Link from "next/link";

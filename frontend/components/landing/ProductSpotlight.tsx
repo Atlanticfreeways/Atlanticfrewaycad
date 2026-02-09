@@ -40,7 +40,7 @@ export function ProductSpotlight() {
                 <div className="flex items-center justify-between mb-20">
                     <div className="space-y-4">
                         <h2 className="text-4xl font-black text-white tracking-tighter">Physical & Virtual <span className="text-blue-500">Fleet</span></h2>
-                        <p className="text-slate-500 font-bold uppercase tracking-[0.2em] text-[10px]">The industry's most versatile issuing stack</p>
+                        <p className="text-slate-500 font-bold uppercase tracking-[0.2em] text-[10px]">The industry&apos;s most versatile issuing stack</p>
                     </div>
                     <button className="hidden md:flex items-center space-x-2 text-sm font-bold text-slate-400 hover:text-white transition-all group">
                         <span>Compare all card types</span>
