@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -56,20 +56,21 @@ export function LocationRestrictionsModal({ cardId, isOpen, onClose }: LocationR
         }
     });
 
-    const fetchRules = async () => {
+    const fetchRules = useCallback(async () => {
         try {
             const res = await api.get<{ rules: Rule[] }>(`/personal/cards/${cardId}/controls/location`);
-            setRules(res.rules);
+            setRules(res.rules || []);
         } catch (e) {
+            console.error(e);
             toast.error('Failed to load rules');
         }
-    };
+    }, [cardId]);
 
     useEffect(() => {
         if (isOpen) {
             fetchRules();
         }
-    }, [isOpen, cardId]);
+    }, [isOpen, fetchRules]);
 
     const onSubmit = async (data: FormData) => {
         setLoading(true);
@@ -91,6 +92,7 @@ export function LocationRestrictionsModal({ cardId, isOpen, onClose }: LocationR
             toast.success('Rule deleted');
             setRules(prev => prev.filter(r => r.country_code !== countryCode));
         } catch (e) {
+            console.error(e);
             toast.error('Failed to delete rule');
         }
     }
@@ -118,7 +120,10 @@ export function LocationRestrictionsModal({ cardId, isOpen, onClose }: LocationR
                             </div>
                             <div className="space-y-1">
                                 <Label>Country</Label>
-                                <select {...register('countryCode')} className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
+                                <select
+                                    {...register('countryCode')}
+                                    className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                                >
                                     {COUNTRIES.map(c => (
                                         <option key={c.code} value={c.code}>{c.name} ({c.code})</option>
                                     ))}

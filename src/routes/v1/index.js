@@ -29,7 +29,11 @@ router.use('/rates', require('./rates'));
 router.use('/config', require('./config'));
 router.use('/compliance', require('./compliance'));
 
+// Team routes
+router.use('/team', require('./team'));
+
 // User routes
+router.use('/cards', require('./cards')); // NEW: Card management
 router.use('/users/profile', require('./users/profile')); // NEW: User profile
 router.use('/users/privacy', require('./users/privacy')); // NEW: GDPR privacy
 router.use('/users', require('./users/password')); // NEW: Password change

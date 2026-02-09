@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
+import { api } from '@/lib/api';
 import { DashboardShell } from '@/components/layout/DashboardShell';
 import {
     Download,
@@ -26,17 +27,31 @@ interface Transaction {
     created_at: string;
 }
 
-const mockTransactions: Transaction[] = [
-    { id: '1', merchant_name: 'AWS Infrastructure', amount: 2450.00, currency: 'USD', status: 'completed', mcc_description: 'Infrastructure', created_at: new Date().toISOString() },
-    { id: '2', merchant_name: 'Google Workspace', amount: 156.20, currency: 'USD', status: 'completed', mcc_description: 'Software', created_at: new Date().toISOString() },
-    { id: '3', merchant_name: 'Uber Business', amount: 42.50, currency: 'USD', status: 'pending', mcc_description: 'Travel', created_at: new Date().toISOString() },
-    { id: '4', merchant_name: 'Starbucks', amount: 14.50, currency: 'USD', status: 'completed', mcc_description: 'Food & Drink', created_at: new Date().toISOString() },
-];
-
 export default function TransactionsPage() {
-    const [transactions, setTransactions] = useState<Transaction[]>(mockTransactions);
-    const [loading, setLoading] = useState(false);
+    const [transactions, setTransactions] = useState<Transaction[]>([]);
+    const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
+
+    useEffect(() => {
+        fetchTransactions();
+    }, []);
+
+    const fetchTransactions = async () => {
+        try {
+            setLoading(true);
+            const res = await api.get<any>('/transactions');
+            if (res.success && res.history) {
+                // Map backend response to frontend interface if needed
+                setTransactions(res.history);
+            } else if (res.transactions) {
+                setTransactions(res.transactions);
+            }
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     return (
         <DashboardShell>

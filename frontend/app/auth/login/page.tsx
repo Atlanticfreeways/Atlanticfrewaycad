@@ -1,7 +1,12 @@
 "use client";
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useAuthStore } from '@/store/authStore';
+import { useMutation } from '@tanstack/react-query';
+import axios from 'axios';
+import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import {
     Github,
@@ -11,10 +16,48 @@ import {
     Mail,
     AlertCircle,
     Fingerprint,
-    Zap
+    Zap,
+    Loader2
 } from 'lucide-react';
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api/v1';
+
 export default function LoginPage() {
+    const router = useRouter();
+    const login = useAuthStore((state) => state.login);
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+
+    const { mutate: handleLogin, isPending } = useMutation({
+        mutationFn: async () => {
+            const response = await axios.post(`${API_URL}/auth/login`, {
+                email,
+                password
+            });
+            return response.data;
+        },
+        onSuccess: (data) => {
+            console.log("Login success:", data);
+            login(data.user, data.token);
+            toast.success("Welcome back!");
+            router.push('/dashboard');
+        },
+        onError: (error: any) => {
+            console.error("Login error:", error);
+            const message = error.response?.data?.error || "Invalid credentials";
+            toast.error(message);
+        }
+    });
+
+    const onSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!email || !password) {
+            toast.error("Please fill in all fields");
+            return;
+        }
+        handleLogin();
+    };
+
     return (
         <div className="min-h-screen bg-slate-950 flex flex-col lg:flex-row overflow-hidden font-sans">
             {/* Left Pane - Narrative */}
@@ -74,11 +117,11 @@ export default function LoginPage() {
 
                     {/* All Auth Buttons - Social + Standard on same page */}
                     <div className="grid grid-cols-2 gap-4">
-                        <button className="flex items-center justify-center space-x-3 bg-white/5 border border-white/10 p-4 rounded-2xl hover:bg-white/10 transition-all group">
+                        <button type="button" className="flex items-center justify-center space-x-3 bg-white/5 border border-white/10 p-4 rounded-2xl hover:bg-white/10 transition-all group">
                             <Chrome className="w-5 h-5 text-slate-400 group-hover:text-white transition-colors" />
                             <span className="text-sm font-bold text-white">Google</span>
                         </button>
-                        <button className="flex items-center justify-center space-x-3 bg-white/5 border border-white/10 p-4 rounded-2xl hover:bg-white/10 transition-all group">
+                        <button type="button" className="flex items-center justify-center space-x-3 bg-white/5 border border-white/10 p-4 rounded-2xl hover:bg-white/10 transition-all group">
                             <Github className="w-5 h-5 text-slate-400 group-hover:text-white transition-colors" />
                             <span className="text-sm font-bold text-white">Github</span>
                         </button>
@@ -89,15 +132,18 @@ export default function LoginPage() {
                         <div className="relative flex justify-center text-xs uppercase font-black tracking-[0.3em]"><span className="bg-slate-950 px-4 text-slate-700">Enterprise Auth</span></div>
                     </div>
 
-                    <form className="space-y-6">
+                    <form onSubmit={onSubmit} className="space-y-6">
                         <div className="space-y-3">
                             <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-1">Identity (Work Email)</label>
                             <div className="relative group">
                                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600 group-focus-within:text-blue-500 transition-colors" />
                                 <input
                                     type="email"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
                                     className="w-full bg-slate-900 border border-white/5 rounded-2xl p-4 pl-12 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-600/50 transition-all placeholder:text-slate-700"
                                     placeholder="alex@company.com"
+                                    required
                                 />
                             </div>
                         </div>
@@ -111,23 +157,33 @@ export default function LoginPage() {
                                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600 group-focus-within:text-blue-500 transition-colors" />
                                 <input
                                     type="password"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
                                     className="w-full bg-slate-900 border border-white/5 rounded-2xl p-4 pl-12 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-600/50 transition-all placeholder:text-slate-700"
                                     placeholder="••••••••"
+                                    required
                                 />
                             </div>
                         </div>
 
-                        <Link
-                            href="/dashboard"
-                            className="flex w-full justify-center items-center space-x-3 bg-white text-black py-5 rounded-2xl font-black text-lg hover:bg-slate-100 transition-all active:scale-95 shadow-xl shadow-white/5"
+                        <button
+                            type="submit"
+                            disabled={isPending}
+                            className="flex w-full justify-center items-center space-x-3 bg-white text-black py-5 rounded-2xl font-black text-lg hover:bg-slate-100 transition-all active:scale-95 shadow-xl shadow-white/5 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            <span>Enter Console</span>
-                            <ArrowRight className="w-5 h-5" />
-                        </Link>
+                            {isPending ? (
+                                <Loader2 className="w-5 h-5 animate-spin" />
+                            ) : (
+                                <>
+                                    <span>Enter Console</span>
+                                    <ArrowRight className="w-5 h-5" />
+                                </>
+                            )}
+                        </button>
                     </form>
 
                     <div className="flex items-center justify-between pt-6">
-                        <button className="flex items-center space-x-2 text-slate-500 hover:text-white transition-colors group">
+                        <button type="button" className="flex items-center space-x-2 text-slate-500 hover:text-white transition-colors group">
                             <Fingerprint className="w-5 h-5 group-hover:text-blue-500" />
                             <span className="text-[10px] font-black uppercase tracking-widest">Biometric Access</span>
                         </button>

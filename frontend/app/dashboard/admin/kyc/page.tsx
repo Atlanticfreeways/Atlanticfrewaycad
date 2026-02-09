@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { getApiUrl } from '../../../utils/urlValidator';
+import { getApiUrl } from '@/utils/urlValidator';
 
 export default function AdminKYC() {
   const [verifications, setVerifications] = useState<any[]>([]);

@@ -9,6 +9,8 @@ import { CardShowcase } from '@/components/landing/CardShowcase';
 import { IssuanceSpecs } from '@/components/landing/IssuanceSpecs';
 import { ProductSpotlight } from '@/components/landing/ProductSpotlight';
 import { Pricing, LandingMarquee, Testimonials } from '@/components/landing/EnterpriseSections';
+import { CookieConsent } from '@/components/landing/CookieConsent';
+import { FAQSection } from '@/components/landing/FAQSection';
 
 export default function LandingPage() {
   return (
@@ -119,6 +121,10 @@ export default function LandingPage() {
           <Testimonials />
         </div>
 
+        <div>
+          <FAQSection />
+        </div>
+
         {/* Final CTA */}
         <section className="py-40 px-4">
           <div className="max-w-5xl mx-auto glass-card rounded-[3.5rem] p-12 md:p-24 text-center space-y-12 relative overflow-hidden group">
@@ -140,6 +146,7 @@ export default function LandingPage() {
       </main>
 
       <ModernFooter />
+      <CookieConsent />
     </div>
   );
 }

@@ -6,22 +6,23 @@ export function useDashboardData() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    useEffect(() => {
-        async function fetchData() {
-            try {
-                const [overview, metrics] = await Promise.all([
-                    api.get('/dashboard/overview'),
-                    api.get('/dashboard/metrics')
-                ]);
-                setData({ ...overview, metrics });
-            } catch (e: any) {
-                console.error(e);
-                setError(e);
-            } finally {
-                setLoading(false);
-            }
+    const fetchData = async () => {
+        try {
+            setLoading(true);
+            const [overview, metrics] = await Promise.all([
+                api.get('/dashboard/overview'),
+                api.get('/dashboard/metrics')
+            ]);
+            setData({ ...(overview as any), metrics });
+        } catch (e: any) {
+            console.error(e);
+            setError(e);
+        } finally {
+            setLoading(false);
         }
+    };
 
+    useEffect(() => {
         // Only fetch if token exists
         if (localStorage.getItem('token')) {
             fetchData();
@@ -30,5 +31,5 @@ export function useDashboardData() {
         }
     }, []);
 
-    return { data, loading, error };
+    return { data, loading, error, refetch: fetchData };
 }

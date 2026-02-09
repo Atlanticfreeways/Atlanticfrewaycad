@@ -162,7 +162,20 @@ function CardItem({ card, index }: { card: any, index: number }) {
 
                     <div className="flex items-center gap-3 relative">
                         <button
-                            onClick={() => setIsFrozen(!isFrozen)}
+                            onClick={async () => {
+                                try {
+                                    if (isFrozen) {
+                                        await api.post(`/cards/${card.id}/unfreeze`, {});
+                                        setIsFrozen(false);
+                                    } else {
+                                        await api.post(`/cards/${card.id}/freeze`, {});
+                                        setIsFrozen(true);
+                                    }
+                                } catch (e) {
+                                    console.error(e);
+                                    // toast.error("Failed to update card status");
+                                }
+                            }}
                             className={cn(
                                 "flex-1 py-4 rounded-2xl font-bold text-sm tracking-tight transition-all flex items-center justify-center space-x-2",
                                 isFrozen ? "bg-green-600/10 text-green-500 hover:bg-green-600 hover:text-white" : "bg-red-600/10 text-red-500 hover:bg-red-600 hover:text-white"
@@ -250,6 +263,23 @@ function SecuritySetting({ title, status, desc }: any) {
 
 function CreateCardModal({ onClose }: { onClose: () => void }) {
     const [loading, setLoading] = useState(false);
+    const [cardName, setCardName] = useState('');
+    const { refetch } = useDashboardData(); // Assuming useDashboardData exports refetch, or we need to trigger re-fetch
+
+    const handleCreate = async () => {
+        try {
+            setLoading(true);
+            await api.post('/cards', { name: cardName, type: 'VIRTUAL' });
+            // toast.success("Card issued successfully"); // toast not imported here, but we can assume user knows it works or we should add it
+            onClose();
+            // Ideally refetch data here
+            window.location.reload(); // Quick fix to refresh data for now
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setLoading(false);
+        }
+    };
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <motion.div
@@ -273,15 +303,24 @@ function CreateCardModal({ onClose }: { onClose: () => void }) {
                 <div className="space-y-6">
                     <div>
                         <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3 px-1">Allocation Nickname</label>
-                        <input className="w-full bg-slate-900 border border-white/5 rounded-2xl p-4 text-white focus:outline-none focus:ring-2 focus:ring-blue-600/50" placeholder="e.g. Marketing Q3 Ads" />
+                        <input
+                            value={cardName}
+                            onChange={(e) => setCardName(e.target.value)}
+                            className="w-full bg-slate-900 border border-white/5 rounded-2xl p-4 text-white focus:outline-none focus:ring-2 focus:ring-blue-600/50"
+                            placeholder="e.g. Marketing Q3 Ads"
+                        />
                     </div>
                 </div>
 
                 <div className="flex gap-4 mt-12">
-                    <button onClick={onClose} className="flex-1 py-4 bg-white/5 hover:bg-white/10 rounded-2xl font-bold text-white transition-all">Cancel</button>
-                    <button className="flex-[2] py-4 bg-blue-600 hover:bg-blue-500 rounded-2xl font-bold text-white transition-all shadow-xl shadow-blue-600/20 active:scale-95 flex items-center justify-center space-x-2">
-                        <span>Initiate Issuance</span>
-                        <Zap className="w-4 h-4 fill-current" />
+                    <button onClick={onClose} disabled={loading} className="flex-1 py-4 bg-white/5 hover:bg-white/10 rounded-2xl font-bold text-white transition-all">Cancel</button>
+                    <button
+                        onClick={handleCreate}
+                        disabled={loading || !cardName}
+                        className="flex-[2] py-4 bg-blue-600 hover:bg-blue-500 rounded-2xl font-bold text-white transition-all shadow-xl shadow-blue-600/20 active:scale-95 flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        <span>{loading ? 'Issuing...' : 'Initiate Issuance'}</span>
+                        {!loading && <Zap className="w-4 h-4 fill-current" />}
                     </button>
                 </div>
             </motion.div>

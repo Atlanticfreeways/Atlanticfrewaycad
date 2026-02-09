@@ -39,6 +39,7 @@ export class ApiClient {
     }
   }
 
+  // eslint-disable-next-line no-undef
   async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
     const headers: any = {
       'Content-Type': 'application/json',

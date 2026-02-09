@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -26,6 +26,7 @@ interface Rule {
     merchant_name?: string;
     mcc?: string;
     category_group?: string;
+    type?: string; // backend might return 'allow'/'block' as type or control_type
 }
 
 interface MerchantControlsModalProps {
@@ -38,7 +39,7 @@ export function MerchantControlsModal({ cardId, isOpen, onClose }: MerchantContr
     const [rules, setRules] = useState<Rule[]>([]);
     const [loading, setLoading] = useState(false);
 
-    const { register, handleSubmit, reset } = useForm<FormData>({
+    const { register, handleSubmit, reset, formState: { errors } } = useForm<FormData>({
         resolver: zodResolver(schema),
         defaultValues: {
             controlType: 'block',
@@ -47,28 +48,33 @@ export function MerchantControlsModal({ cardId, isOpen, onClose }: MerchantContr
         }
     });
 
-    const fetchRules = async () => {
+    const fetchRules = useCallback(async () => {
         try {
-            const res = await api.get<{ rules: Rule[] }>(`/personal/cards/${cardId}/controls/merchant`);
-            setRules(res.rules);
+            const res = await api.get<{ rules: Rule[] }>(`/cards/${cardId}/controls/merchant`);
+            setRules(res.rules || []);
         } catch (e) {
+            console.error(e);
             toast.error('Failed to load rules');
         }
-    };
+    }, [cardId]);
 
     useEffect(() => {
         if (isOpen) {
             fetchRules();
         }
-    }, [isOpen, cardId]);
+    }, [isOpen, fetchRules]);
 
     const onSubmit = async (data: FormData) => {
         setLoading(true);
         try {
-            const payload: any = { controlType: data.controlType };
-            payload[data.targetType] = data.value;
+            const apiPayload = {
+                type: data.controlType,
+                ...((data.targetType === 'merchantName') && { merchant_name: data.value }),
+                ...((data.targetType === 'mcc') && { mcc: data.value }),
+                ...((data.targetType === 'categoryGroup') && { category_group: data.value }),
+            };
 
-            await api.post(`/personal/cards/${cardId}/controls/merchant`, payload);
+            await api.post(`/cards/${cardId}/controls/merchant`, apiPayload);
             toast.success('Rule added');
             reset();
             fetchRules();
@@ -81,10 +87,11 @@ export function MerchantControlsModal({ cardId, isOpen, onClose }: MerchantContr
 
     const deleteRule = async (id: number) => {
         try {
-            await api.request(`/personal/cards/controls/merchant/${id}`, { method: 'DELETE' });
+            await api.request(`/cards/controls/merchant/${id}`, { method: 'DELETE' });
             toast.success('Rule deleted');
             setRules(prev => prev.filter(r => r.id !== id));
         } catch (e) {
+            console.error(e);
             toast.error('Failed to delete rule');
         }
     }
@@ -121,6 +128,7 @@ export function MerchantControlsModal({ cardId, isOpen, onClose }: MerchantContr
                         <div className="space-y-1">
                             <Label>Value</Label>
                             <Input {...register('value')} placeholder="e.g. Netflix, 5812, or travel" />
+                            {errors.value && <p className="text-xs text-red-500">{errors.value.message}</p>}
                         </div>
                         <Button type="submit" size="sm" className="w-full" disabled={loading}>
                             {loading ? 'Adding...' : 'Add Rule'}
@@ -132,23 +140,23 @@ export function MerchantControlsModal({ cardId, isOpen, onClose }: MerchantContr
                 <div>
                     <h3 className="text-sm font-medium mb-3">Active Rules</h3>
                     {rules.length === 0 ? (
-                        <p className="text-sm text-muted-foreground italic">No restrictions set.</p>
+                        <p className="text-sm text-slate-500 italic">No restrictions set.</p>
                     ) : (
                         <ul className="space-y-2 max-h-48 overflow-y-auto">
                             {rules.map(rule => (
-                                <li key={rule.id} className="flex items-center justify-between p-3 bg-card border rounded-md shadow-sm">
+                                <li key={rule.id} className="flex items-center justify-between p-3 bg-white border border-slate-200 rounded-md shadow-sm">
                                     <div className="flex items-center gap-3">
-                                        {rule.control_type === 'allow' ? <ShieldCheck className="text-green-500 h-5 w-5" /> : <ShieldAlert className="text-red-500 h-5 w-5" />}
+                                        {(rule.control_type === 'allow' || rule.type === 'allow') ? <ShieldCheck className="text-green-500 h-5 w-5" /> : <ShieldAlert className="text-red-500 h-5 w-5" />}
                                         <div>
-                                            <p className="text-sm font-medium capitalize">{rule.control_type}</p>
-                                            <p className="text-xs text-muted-foreground">
+                                            <p className="text-sm font-medium capitalize">{rule.control_type || rule.type}</p>
+                                            <p className="text-xs text-slate-500">
                                                 {rule.merchant_name && `Merchant: ${rule.merchant_name}`}
                                                 {rule.mcc && `MCC: ${rule.mcc}`}
                                                 {rule.category_group && `Category: ${rule.category_group}`}
                                             </p>
                                         </div>
                                     </div>
-                                    <Button variant="ghost" size="icon" onClick={() => deleteRule(rule.id)} className="text-muted-foreground hover:text-destructive">
+                                    <Button variant="ghost" size="icon" onClick={() => deleteRule(rule.id)} className="text-slate-400 hover:text-red-500">
                                         <Trash2 className="h-4 w-4" />
                                     </Button>
                                 </li>
