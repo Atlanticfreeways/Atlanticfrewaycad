@@ -16,16 +16,7 @@ export default function LandingPage() {
   return (
     <div className="bg-zinc-950 min-h-screen text-white selection:bg-blue-600/30">
       {/* Sandbox Top-Bar */}
-      <div className="bg-blue-600 py-3 px-4 relative z-[60]">
-        <div className="max-w-7xl mx-auto flex items-center justify-center space-x-3">
-          <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/90">Instant Access Available</span>
-          <div className="w-[1px] h-3 bg-white/20" />
-          <Link href="/auth/register" className="flex items-center space-x-2 group">
-            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white">Initialize your sandbox in 30 seconds</span>
-            <ArrowRight className="w-3 h-3 group-hover:tranzinc-x-1 transition-transform" />
-          </Link>
-        </div>
-      </div>
+
 
       <ModernNavbar />
 
