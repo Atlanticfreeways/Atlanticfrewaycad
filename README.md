@@ -318,7 +318,8 @@ This project is licensed under the MIT License - see [LICENSE](LICENSE) file for
 
 Built with ❤️ by the Atlantic Freeway Team
 
-Last Updated: February 3, 2026T Funding**: More secure than Revolut/Wise pre-funded cards
+Last Updated: February 10, 2026
+See [PHASE_1_MVP_LAUNCH.md](roadmaps/PHASE_1_MVP_LAUNCH.md) for current implementation status.
 - **Crypto-Native**: Unlike traditional banks, we embrace Bitcoin/Ethereum
 - **Bulk Issuance**: Faster than Brex for large teams (1000+ cards in minutes)
 - **Transparent Pricing**: No hidden fees unlike legacy banks
