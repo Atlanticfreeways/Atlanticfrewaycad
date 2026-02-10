@@ -22,10 +22,12 @@ export default function LandingPage() {
 
       <main>
         {/* Hero Section */}
-        <section className="pt-48 pb-20 px-4 md:px-8 relative overflow-hidden">
+        <section className="pt-32 pb-20 px-4 md:px-8 relative overflow-hidden">
+          <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 brightness-100 contrast-150 mix-blend-overlay"></div>
+          <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]"></div>
           <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-blue-600/10 blur-[120px] rounded-full -mr-32 -mt-32 pointer-events-none" />
 
-          <div className="max-w-7xl mx-auto text-center space-y-12">
+          <div className="max-w-7xl mx-auto text-center space-y-12 relative z-10">
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
