@@ -91,6 +91,25 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
+// Session & Passport
+const session = require('express-session');
+const passport = require('passport');
+
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'default_session_secret_replace_in_prod',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: process.env.NODE_ENV === 'production',
+    httpOnly: true,
+    maxAge: 24 * 60 * 60 * 1000 // 1 day
+  }
+}));
+
+app.use(passport.initialize());
+app.use(passport.session());
+require('./src/config/passport')(app);
+
 // Tracing Middleware (Must be before inputs)
 app.use(httpContext.middleware);
 app.use(requestId);

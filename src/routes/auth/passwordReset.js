@@ -37,27 +37,28 @@ router.post('/request-reset', authLimiter, csrfProtection, asyncHandler(async (r
         return res.json({ success: true, message: 'If an account exists, a reset link has been sent.' });
     }
 
+    const EmailService = require('../../services/EmailService');
+
+    // ... (inside the handler)
+
     // Generate token
     const token = crypto.randomBytes(32).toString('hex');
     const redisKey = `reset_token:${token}`;
 
     // Store in Redis (1 hour expiration)
-    const redis = getRedis(req);
+    // We need to fetch Redis properly
+    const dbConnection = require('../../database/connection');
+    const redis = dbConnection.getRedis();
+
+    // Set with expiration (EX 3600 seconds = 1 hour)
     await redis.set(redisKey, user.id, { EX: 3600 });
 
-    // Send Email (Mock/Log for now)
-    const resetLink = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/auth/reset-password?token=${token}`;
-
-    // Use notification service from request context
-    if (req.services && req.services.notification) {
-        await req.services.notification.sendEmail(
-            [email],
-            'Password Reset Request',
-            `Click here to reset your password: ${resetLink}`
-        );
-    } else {
-        // Fallback logging if service not available in context (should catch in server.js)
-        logger.info(`[MOCK EMAIL] Password Reset Link for ${email}: ${resetLink}`);
+    try {
+        await EmailService.sendPasswordResetEmail(user, token);
+        logger.info(`Password reset email sent to ${email}`);
+    } catch (error) {
+        logger.error(`Failed to send password reset email to ${email}`, error);
+        // Don't fail the request, just log
     }
 
     res.json({ success: true, message: 'If an account exists, a reset link has been sent.' });

@@ -230,6 +230,7 @@ router.post('/refresh', csrfProtection, asyncHandler(async (req, res) => {
   });
 }));
 
+// Logout Route
 router.post('/logout', asyncHandler(async (req, res) => {
   const refreshToken = req.cookies.refreshToken || req.body.refreshToken;
   if (refreshToken) {
@@ -240,5 +241,41 @@ router.post('/logout', asyncHandler(async (req, res) => {
   res.clearCookie('refreshToken');
   res.json({ success: true, message: 'Logged out' });
 }));
+
+const passport = require('passport');
+
+// Google Auth
+router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+
+router.get('/google/callback',
+  passport.authenticate('google', { failureRedirect: '/auth/login?error=google_failed' }),
+  asyncHandler(async (req, res) => {
+    const tokens = JWTService.generateTokenPair(req.user);
+    const sessionService = new SessionService(req.repositories);
+    await sessionService.createSession(req.user.id, tokens.refreshToken, req.ip, req.get('user-agent'));
+
+    res.cookie('refreshToken', tokens.refreshToken, COOKIE_OPTIONS);
+
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    res.redirect(`${frontendUrl}/auth/callback?token=${tokens.accessToken}`);
+  })
+);
+
+// GitHub Auth
+router.get('/github', passport.authenticate('github', { scope: ['user:email'] }));
+
+router.get('/github/callback',
+  passport.authenticate('github', { failureRedirect: '/auth/login?error=github_failed' }),
+  asyncHandler(async (req, res) => {
+    const tokens = JWTService.generateTokenPair(req.user);
+    const sessionService = new SessionService(req.repositories);
+    await sessionService.createSession(req.user.id, tokens.refreshToken, req.ip, req.get('user-agent'));
+
+    res.cookie('refreshToken', tokens.refreshToken, COOKIE_OPTIONS);
+
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    res.redirect(`${frontendUrl}/auth/callback?token=${tokens.accessToken}`);
+  })
+);
 
 module.exports = router;

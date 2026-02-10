@@ -118,7 +118,7 @@ export default function LoginPage() {
                     <div className="grid grid-cols-2 gap-4">
                         <button
                             type="button"
-                            onClick={() => toast.info("Social Authentication requires configured API keys.")}
+                            onClick={() => window.location.href = `${API_URL}/auth/google`}
                             className="flex items-center justify-center space-x-3 bg-white/5 border border-white/10 p-4 rounded-2xl hover:bg-white/10 transition-all group"
                         >
                             <Chrome className="w-5 h-5 text-slate-400 group-hover:text-white transition-colors" />
@@ -126,7 +126,7 @@ export default function LoginPage() {
                         </button>
                         <button
                             type="button"
-                            onClick={() => toast.info("Social Authentication requires configured API keys.")}
+                            onClick={() => window.location.href = `${API_URL}/auth/github`}
                             className="flex items-center justify-center space-x-3 bg-white/5 border border-white/10 p-4 rounded-2xl hover:bg-white/10 transition-all group"
                         >
                             <Github className="w-5 h-5 text-slate-400 group-hover:text-white transition-colors" />
