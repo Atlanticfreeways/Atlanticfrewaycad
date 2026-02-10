@@ -12,6 +12,12 @@
 - [x] **Email System**:
     - Implemented `EmailService.js` using SendGrid.
     - Connected `PasswordReset` flow to real email sending logic.
+- [x] **Rate Limiting**:
+    - Implemented Redis-backed rate limiting with fallback.
+    - Added Tiered limits (Basic/Turbo) and Login Brute Force protection.
+- [x] **Database Performance**:
+    - Added indexes for Transactions, Cards, and Social Auth lookups.
+    - Configured `statement_timeout` (10s) to prevent query hangs.
 
 ## Remaining High Priority (Next Steps)
 - [ ] **Environment Configuration**: 

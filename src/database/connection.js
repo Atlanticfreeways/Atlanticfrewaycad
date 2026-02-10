@@ -14,6 +14,7 @@ class DatabaseConnection {
         // Use DATABASE_URL if available (Railway), otherwise use individual vars
         const poolConfig = process.env.DATABASE_URL ? {
           connectionString: process.env.DATABASE_URL,
+          statement_timeout: 10000,
           ssl: process.env.NODE_ENV === 'production' ? {
             rejectUnauthorized: false
           } : false
@@ -26,11 +27,12 @@ class DatabaseConnection {
           max: parseInt(process.env.POSTGRES_POOL_SIZE) || 20,
           idleTimeoutMillis: 30000,
           connectionTimeoutMillis: 5000,
+          statement_timeout: 10000, // Kill queries taking longer than 10s
           ssl: process.env.NODE_ENV === 'production' ? {
             rejectUnauthorized: false
           } : false
         };
-        
+
         this.pgPool = new Pool(poolConfig);
 
         this.pgPool.on('error', (err) => {
@@ -94,7 +96,7 @@ class DatabaseConnection {
 
   async healthCheck() {
     const status = { postgres: 'unknown', redis: 'unknown' };
-    
+
     try {
       if (this.pgPool) {
         await this.pgPool.query('SELECT 1');
@@ -106,7 +108,7 @@ class DatabaseConnection {
       status.postgres = 'unhealthy';
       logger.error('PostgreSQL health check failed', { error: err.message });
     }
-    
+
     try {
       if (this.redisClient && this.redisClient.isOpen) {
         await this.redisClient.ping();
@@ -118,7 +120,7 @@ class DatabaseConnection {
       status.redis = 'unhealthy';
       logger.error('Redis health check failed', { error: err.message });
     }
-    
+
     return status;
   }
 }

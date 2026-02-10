@@ -81,7 +81,6 @@ const PORT = process.env.PORT || 3000;
 // Security middleware
 app.use(helmet());
 app.use(cors(corsOptions));
-app.use(apiLimiter);
 
 const httpContext = require('express-http-context');
 const requestId = require('./src/middleware/requestId');
@@ -245,6 +244,9 @@ app.use(async (req, res, next) => {
 
 // API Documentation
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
+
+// API Rate Limiting (Redis-backed if available)
+app.use(apiLimiter);
 
 // CSRF token endpoint
 app.get('/api/v1/csrf-token', csrfProtection, (req, res) => {
