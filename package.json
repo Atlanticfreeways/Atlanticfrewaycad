@@ -18,7 +18,8 @@
     "docker:build": "docker build -t atlanticfrewaycard .",
     "docker:run": "docker-compose up -d",
     "docker:stop": "docker-compose down",
-    "docker:logs": "docker-compose logs -f app"
+    "docker:logs": "docker-compose logs -f app",
+    "build": "npm install && cd frontend && npm install && npm run build"
   },
   "dependencies": {
     "@aws-sdk/client-secrets-manager": "^3.984.0",

@@ -276,21 +276,16 @@ app.use('/api/*', (req, res, next) => {
 });
 
 // Serve static files
-app.use(express.static('public'));
+// Serve static frontend files (from Next.js export)
+const path = require('path');
+app.use(express.static(path.join(__dirname, 'frontend/out')));
 
-// Default route
-app.get('/', (req, res) => {
-  res.json({
-    message: 'Atlanticfrewaycard Platform API',
-    version: '1.0.0',
-    services: {
-      business: '/api/v1/business',
-      personal: '/api/v1/personal',
-      shared: '/api/v1/shared'
-    },
-    apiVersion: 'v1',
-    status: 'active'
-  });
+// Handle SPA routing: serve index.html for any unknown non-API routes
+app.get('*', (req, res) => {
+  if (req.path.startsWith('/api')) {
+    return res.status(404).json({ error: 'Endpoint not found' });
+  }
+  res.sendFile(path.join(__dirname, 'frontend/out', 'index.html'));
 });
 
 // CSRF error handler

@@ -1,7 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  swcMinify: true,
+  output: 'export',
+  // Note: rewrites are ignored in 'export' mode, handled by server.js in production
   async rewrites() {
     return [
       {
