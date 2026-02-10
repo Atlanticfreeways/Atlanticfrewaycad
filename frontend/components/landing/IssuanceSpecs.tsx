@@ -4,12 +4,9 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import {
     Truck,
-    Palette,
     Code2,
     ShieldCheck,
-    Globe,
     Zap,
-    CreditCard,
     ArrowRight
 } from 'lucide-react';
 
@@ -61,7 +58,7 @@ export function IssuanceSpecs() {
                             <span className="text-blue-500">Behind the Plastic.</span>
                         </h2>
                         <p className="text-slate-500 font-medium leading-relaxed">
-                            We don't just print cards. We provide the programmable rails that allow you to move capital at the speed of light, with compliance baked into every byte.
+                            We don&apos;t just print cards. We provide the programmable rails that allow you to move capital at the speed of light, with compliance baked into every byte.
                         </p>
                         <div className="pt-4">
                             <button className="flex items-center space-x-3 bg-white text-black px-8 py-4 rounded-2xl font-black text-sm hover:bg-slate-200 transition-all active:scale-95 shadow-xl shadow-white/5">
@@ -145,7 +142,7 @@ export function IssuanceSpecs() {
 }`}
                             </pre>
                             <div className="mt-8 pt-8 border-t border-white/5 flex items-center justify-between">
-                                <p className="text-slate-700 uppercase tracking-widest">Response -> 201 Created</p>
+                                <p className="text-slate-700 uppercase tracking-widest">Response -&gt; 201 Created</p>
                                 <button className="text-blue-500 font-bold hover:text-white transition-colors">Copy Payload</button>
                             </div>
                         </div>

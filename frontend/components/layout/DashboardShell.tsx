@@ -1,14 +1,40 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Sidebar } from "./Sidebar";
 import { Menu, Search, Bell, Zap, Sparkles, ChevronRight } from "lucide-react";
+// Removed duplicate import
 import Link from "next/link";
-import { cn } from "@/lib/utils";
+import { useAuthStore } from "@/store/authStore";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 export function DashboardShell({ children }: { children: React.ReactNode }) {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-    const [isSandboxActive, setIsSandboxActive] = useState(true); // Simulated trial state
+    const [isSandboxActive] = useState(true); // Simulated trial state
+
+    const router = useRouter();
+    const { isAuthenticated, user } = useAuthStore();
+    const [isMounted, setIsMounted] = useState(false);
+
+    useEffect(() => {
+        setIsMounted(true);
+    }, []);
+
+    useEffect(() => {
+        if (isMounted && !isAuthenticated) {
+            toast.error("Please log in to access the console.");
+            router.push('/auth/login');
+        }
+    }, [isMounted, isAuthenticated, router]);
+
+    if (!isMounted) {
+        return null; // Or a loading spinner
+    }
+
+    if (!isAuthenticated) {
+        return null; // Prevent flash of content
+    }
 
     return (
         <div className="flex h-screen bg-slate-950 text-slate-100 overflow-hidden font-sans relative">
@@ -77,10 +103,14 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
                         </button>
                         <div className="h-8 w-[1px] bg-white/5 mx-2" />
                         <div className="flex items-center space-x-3 px-3 py-1.5 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors cursor-pointer group">
-                            <div className="w-7 h-7 rounded-xl bg-gradient-to-tr from-blue-600 to-purple-500 flex items-center justify-center text-[10px] font-black shadow-lg">JD</div>
+                            <div className="w-7 h-7 rounded-xl bg-gradient-to-tr from-blue-600 to-purple-500 flex items-center justify-center text-[10px] font-black shadow-lg">
+                                {user?.name ? user.name.substring(0, 2).toUpperCase() : 'JD'}
+                            </div>
                             <div className="hidden xl:block">
-                                <p className="text-xs font-black text-white leading-none">Demo User</p>
-                                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">Admin Account</p>
+                                <p className="text-xs font-black text-white leading-none">{user?.name || 'Demo User'}</p>
+                                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">
+                                    {user?.email || 'Admin Account'}
+                                </p>
                             </div>
                         </div>
                     </div>

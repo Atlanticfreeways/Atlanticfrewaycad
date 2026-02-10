@@ -36,7 +36,7 @@ export default function DashboardPage() {
                             </div>
                             <h4 className="text-xl font-bold mb-3 tracking-tight text-white">AI Insights</h4>
                             <p className="text-sm text-slate-400 font-medium leading-relaxed mb-6">
-                                Your spending on "Cloud Infrastructure" is up <span className="text-blue-400 font-bold">12%</span> this month. We recommend reviewing your reserved instances.
+                                Your spending on &quot;Cloud Infrastructure&quot; is up <span className="text-blue-400 font-bold">12%</span> this month. We recommend reviewing your reserved instances.
                             </p>
                             <button className="text-sm font-bold text-blue-500 hover:text-white flex items-center space-x-2 transition-all">
                                 <span>View Recommendations</span>

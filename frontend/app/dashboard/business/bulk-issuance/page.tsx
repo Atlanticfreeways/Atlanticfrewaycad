@@ -182,7 +182,7 @@ export default function BulkIssuancePage() {
                         </CardHeader>
                         <CardContent className="space-y-4 text-sm text-slate-600">
                             <p>1. Download the CSV template.</p>
-                            <p>2. Fill in the employee details. Setting a role of 'manager' gives admin access.</p>
+                            <p>2. Fill in the employee details. Setting a role of &apos;manager&apos; gives admin access.</p>
                             <p>3. Upload the file to provision accounts.</p>
                             <div className="bg-amber-50 text-amber-800 p-3 rounded border border-amber-200 text-xs">
                                 <strong>Note:</strong> Employees will need to reset their password via email (simulated) to access their new dashboard.

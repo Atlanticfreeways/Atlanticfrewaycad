@@ -4,12 +4,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import {
     CreditCard,
-    Shield,
-    Zap,
-    Globe,
-    Cpu,
-    ArrowRight,
-    Trophy
+    ArrowRight
 } from 'lucide-react';
 
 const products = [

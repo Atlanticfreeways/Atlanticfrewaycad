@@ -14,7 +14,13 @@ import {
     Github,
     Twitter,
     Linkedin,
-    ArrowRight
+    BookOpen,
+    Server,
+    GitPullRequest,
+    Users,
+    Briefcase,
+    Newspaper,
+    Mail
 } from 'lucide-react';
 
 export function ModernNavbar() {
@@ -53,6 +59,34 @@ export function ModernNavbar() {
                             <div className="grid grid-cols-1 gap-4 p-6 w-[300px]">
                                 <SubNavItem icon={Globe} title="Platform Banking" desc="Embed banking in your app." />
                                 <SubNavItem icon={Code2} title="API Infrastructure" desc="The developer's first choice." />
+                            </div>
+                        </NavMenuItem>
+
+                        <NavMenuItem
+                            label="Developers"
+                            isActive={activeMenu === 'developers'}
+                            onMouseEnter={() => setActiveMenu('developers')}
+                            onMouseLeave={() => setActiveMenu(null)}
+                        >
+                            <div className="grid grid-cols-1 gap-4 p-6 w-[300px]">
+                                <SubNavItem icon={BookOpen} title="Documentation" desc="Guides and tutorials." />
+                                <SubNavItem icon={Code2} title="API Reference" desc="Complete API spec." />
+                                <SubNavItem icon={Server} title="System Status" desc="Real-time uptime metrics." />
+                                <SubNavItem icon={GitPullRequest} title="Changelog" desc="Latest platform updates." />
+                            </div>
+                        </NavMenuItem>
+
+                        <NavMenuItem
+                            label="Company"
+                            isActive={activeMenu === 'company'}
+                            onMouseEnter={() => setActiveMenu('company')}
+                            onMouseLeave={() => setActiveMenu(null)}
+                        >
+                            <div className="grid grid-cols-1 gap-4 p-6 w-[300px]">
+                                <SubNavItem icon={Users} title="About Us" desc="Our mission and team." />
+                                <SubNavItem icon={Briefcase} title="Careers" desc="Join the future of fintech." />
+                                <SubNavItem icon={Newspaper} title="Blog" desc="Industry insights." />
+                                <SubNavItem icon={Mail} title="Contact" desc="Get in touch with sales." />
                             </div>
                         </NavMenuItem>
 

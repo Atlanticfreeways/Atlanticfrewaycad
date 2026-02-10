@@ -11,10 +11,9 @@ import {
     ArrowUpRight,
     Calendar,
     ChevronLeft,
-    ChevronRight,
-    Loader2
+    ChevronRight
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
 interface Transaction {
@@ -29,7 +28,6 @@ interface Transaction {
 
 export default function TransactionsPage() {
     const [transactions, setTransactions] = useState<Transaction[]>([]);
-    const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
 
     useEffect(() => {
@@ -38,7 +36,6 @@ export default function TransactionsPage() {
 
     const fetchTransactions = async () => {
         try {
-            setLoading(true);
             const res = await api.get<any>('/transactions');
             if (res.success && res.history) {
                 // Map backend response to frontend interface if needed
@@ -48,8 +45,6 @@ export default function TransactionsPage() {
             }
         } catch (error) {
             console.error(error);
-        } finally {
-            setLoading(false);
         }
     };
 

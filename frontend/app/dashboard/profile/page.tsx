@@ -1,14 +1,14 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { DashboardShell } from '@/components/layout/DashboardShell';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
-    User, Mail, Phone, Building, Calendar,
-    CreditCard, Camera, Save, X, Edit2, AlertCircle
+    User, Building, Calendar,
+    Camera, Save, X, Edit2, AlertCircle, Shield
 } from 'lucide-react';
 import { ProfileSkeleton } from '@/components/ui/skeleton';
 import { ErrorDisplay } from '@/components/ui/error';
@@ -97,7 +97,7 @@ export default function ProfilePage() {
         }
 
         setIsSaving(true);
-        const loadingToast = toast.loading('Saving profile changes...');
+        toast.loading('Saving profile changes...');
 
         try {
             const token = localStorage.getItem('token');

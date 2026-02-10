@@ -1,0 +1,101 @@
+
+> atlanticfrewaycard-frontend@1.0.0 lint
+> next lint
+
+
+./app/auth/login/page.tsx
+10:10  Warning: 'motion' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./app/dashboard/admin/audit-logs/page.tsx
+7:20  Warning: 'Filter' is defined but never used.  @typescript-eslint/no-unused-vars
+7:28  Warning: 'Search' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./app/dashboard/admin/banking/page.tsx
+6:5  Warning: 'Zap' is defined but never used.  @typescript-eslint/no-unused-vars
+11:5  Warning: 'Lock' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./app/dashboard/admin/jit-visualizer/[token]/page.tsx
+5:16  Warning: 'CardContent' is defined but never used.  @typescript-eslint/no-unused-vars
+5:29  Warning: 'CardHeader' is defined but never used.  @typescript-eslint/no-unused-vars
+5:41  Warning: 'CardTitle' is defined but never used.  @typescript-eslint/no-unused-vars
+5:52  Warning: 'CardDescription' is defined but never used.  @typescript-eslint/no-unused-vars
+9:10  Warning: 'ArrowDown' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./app/dashboard/admin/marqeta-logs/page.tsx
+31:8  Warning: React Hook useEffect has a missing dependency: 'fetchLogs'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/dashboard/admin/reconciliation/page.tsx
+36:34  Error: 'React' is not defined.  no-undef
+
+./app/dashboard/business/accounting/page.tsx
+5:10  Warning: 'motion' is defined but never used.  @typescript-eslint/no-unused-vars
+6:34  Warning: 'AlertCircle' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./app/dashboard/business/analytics/page.tsx
+6:10  Warning: 'Card' is defined but never used.  @typescript-eslint/no-unused-vars
+6:16  Warning: 'CardContent' is defined but never used.  @typescript-eslint/no-unused-vars
+6:29  Warning: 'CardHeader' is defined but never used.  @typescript-eslint/no-unused-vars
+6:41  Warning: 'CardTitle' is defined but never used.  @typescript-eslint/no-unused-vars
+6:52  Warning: 'CardDescription' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./app/dashboard/business/approvals/page.tsx
+6:17  Warning: 'X' is defined but never used.  @typescript-eslint/no-unused-vars
+6:41  Warning: 'Filter' is defined but never used.  @typescript-eslint/no-unused-vars
+11:10  Warning: 'api' is defined but never used.  @typescript-eslint/no-unused-vars
+19:12  Warning: 'loading' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+57:18  Warning: 'e' is defined but never used.  @typescript-eslint/no-unused-vars
+67:18  Warning: 'e' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./app/dashboard/business/bulk-issuance/page.tsx
+8:18  Warning: 'FileText' is defined but never used.  @typescript-eslint/no-unused-vars
+8:41  Warning: 'XCircle' is defined but never used.  @typescript-eslint/no-unused-vars
+185:83  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+185:91  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+
+./app/dashboard/business/team/page.tsx
+5:5  Warning: 'Users' is defined but never used.  @typescript-eslint/no-unused-vars
+9:5  Warning: 'Mail' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./app/dashboard/cards/page.tsx
+21:10  Warning: 'useAuth' is defined but never used.  @typescript-eslint/no-unused-vars
+26:28  Warning: 'error' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+267:13  Warning: 'refetch' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+./app/dashboard/notifications/page.tsx
+5:10  Warning: 'Badge' is defined but never used.  @typescript-eslint/no-unused-vars
+7:49  Warning: 'AlertCircle' is defined but never used.  @typescript-eslint/no-unused-vars
+114:18  Warning: 'error' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./app/dashboard/page.tsx
+39:50  Error: `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`.  react/no-unescaped-entities
+39:71  Error: `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`.  react/no-unescaped-entities
+
+./app/dashboard/profile/page.tsx
+10:11  Warning: 'Mail' is defined but never used.  @typescript-eslint/no-unused-vars
+10:17  Warning: 'Phone' is defined but never used.  @typescript-eslint/no-unused-vars
+11:5  Warning: 'CreditCard' is defined but never used.  @typescript-eslint/no-unused-vars
+79:36  Error: 'React' is not defined.  no-undef
+100:15  Warning: 'loadingToast' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+215:41  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+255:34  Error: 'Shield' is not defined.  react/jsx-no-undef
+255:34  Error: 'Shield' is not defined.  no-undef
+
+./app/dashboard/reports/page.tsx
+32:8  Warning: React Hook useEffect has a missing dependency: 'fetchReportData'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/dashboard/settings/page.tsx
+13:5  Warning: 'CreditCard' is defined but never used.  @typescript-eslint/no-unused-vars
+15:5  Warning: 'LogOut' is defined but never used.  @typescript-eslint/no-unused-vars
+16:5  Warning: 'Eye' is defined but never used.  @typescript-eslint/no-unused-vars
+17:5  Warning: 'EyeOff' is defined but never used.  @typescript-eslint/no-unused-vars
+20:5  Warning: 'Copy' is defined but never used.  @typescript-eslint/no-unused-vars
+178:18  Warning: 'error' is defined but never used.  @typescript-eslint/no-unused-vars
+204:18  Warning: 'error' is defined but never used.  @typescript-eslint/no-unused-vars
+245:18  Warning: 'error' is defined but never used.  @typescript-eslint/no-unused-vars
+272:18  Warning: 'error' is defined but never used.  @typescript-eslint/no-unused-vars
+307:18  Warning: 'error' is defined but never used.  @typescript-eslint/no-unused-vars
+337:18  Warning: 'error' is defined but never used.  @typescript-eslint/no-unused-vars
+564:65  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+765:118  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+
+info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/basic-features/eslint#disabling-rules

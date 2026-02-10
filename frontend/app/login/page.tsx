@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { api } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { Loader2 } from 'lucide-react';
@@ -125,8 +125,8 @@ export default function LoginPage() {
                     </button>
                 </form>
 
-                <p className="text-center text-sm text-slate-500">
-                    Don't have an account? <Link href="/register" className="text-blue-400 hover:underline">Apply now</Link>
+                <p className="mt-2 text-center text-sm text-gray-600">
+                    Don&apos;t have an account?{' '}<Link href="/register" className="text-blue-400 hover:underline">Apply now</Link>
                 </p>
             </div>
         </div>

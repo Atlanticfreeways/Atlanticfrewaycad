@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import { motion } from 'framer-motion';
+// Removed unused import
 import { Check, ArrowRight, Star, Quote } from 'lucide-react';
 import Link from 'next/link';
 
@@ -143,7 +143,7 @@ export function Testimonials() {
                         {testimonials.map((t, i) => (
                             <div key={i} className="glass-card p-8 rounded-[2rem] border border-white/5 hover:border-white/10 transition-all cursor-default">
                                 <Quote className="w-10 h-10 text-blue-500/20 mb-4" />
-                                <p className="text-lg font-medium text-slate-300 leading-relaxed mb-6 italic">"{t.quote}"</p>
+                                <p className="text-lg font-medium text-slate-300 leading-relaxed mb-6 italic">&quot;{t.quote}&quot;</p>
                                 <div className="flex items-center space-x-4">
                                     <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-blue-600 to-purple-500 flex items-center justify-center font-bold">{t.avatar}</div>
                                     <div>

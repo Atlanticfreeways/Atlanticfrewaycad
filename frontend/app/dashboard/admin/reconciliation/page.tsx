@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -72,7 +72,7 @@ export default function ReconciliationPage() {
 
             // Send to Backend with Idempotency Key
             const idempotencyKey = crypto.randomUUID();
-            const response = await api.post('/admin/reconcile/run', {
+            const response = await api.post<{ data: any }>('/admin/reconcile/run', {
                 date,
                 records
             }, {

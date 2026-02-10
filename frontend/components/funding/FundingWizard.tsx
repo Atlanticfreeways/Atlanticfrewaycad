@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowRight, Building2, CheckCircle, Globe, Loader2, ShieldCheck, Wallet } from "lucide-react";
+import { ArrowRight, Building2, CheckCircle, Globe, Loader2, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
-import api from "@/lib/api"; // Assuming default export is axios instance or similar wrapper
+import { api } from "@/lib/api"; // Assuming default export is axios instance or similar wrapper
 
 interface FundingSession {
     type: string;
@@ -115,7 +115,7 @@ export function FundingWizard() {
                     </div>
 
                     <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4 text-sm text-blue-300">
-                        <p>ℹ️ Since this is a specialized demo environment, clicking "Connect" will simulate the successful OAuth/SDK flow for {sessionData.provider}.</p>
+                        <p>ℹ️ Since this is a specialized demo environment, clicking &quot;Connect&quot; will simulate the successful OAuth/SDK flow for {sessionData.provider}.</p>
                     </div>
 
                     <button
@@ -142,7 +142,7 @@ export function FundingWizard() {
                             <CheckCircle className="w-8 h-8 text-white" />
                         </div>
                         <h2 className="text-2xl font-bold text-white">Account Connected!</h2>
-                        <p className="text-slate-400">Your funding source is active.</p>
+                        <p className="text-sm text-yellow-800">You are in Sandbox Mode. Use &quot;plaid_sandbox&quot; credentials.</p>
                     </div>
 
                     <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-6 space-y-4">

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Cookie } from 'lucide-react';
+import { Cookie } from 'lucide-react';
 import Link from 'next/link';
 
 export function CookieConsent() {

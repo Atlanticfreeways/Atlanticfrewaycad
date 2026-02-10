@@ -762,7 +762,7 @@ export default function SettingsPage() {
                                             <h3 className="font-bold">Important: Secure Your Key</h3>
                                         </div>
                                         <p className="text-xs text-amber-300/80">
-                                            For security reasons, we can only show this key once. If you lose it, you'll need to generate a new one.
+                                            For security reasons, we can only show this key once. If you lose it, you&apos;ll need to generate a new one.
                                         </p>
                                         <div className="flex gap-2">
                                             <input

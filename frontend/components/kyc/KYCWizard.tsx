@@ -3,13 +3,7 @@
 import { useState } from "react";
 import { ArrowRight, CheckCircle, Fingerprint, Loader2, ScanFace, Shield, UploadCloud } from "lucide-react";
 import { toast } from "sonner";
-import api from "@/lib/api";
-
-interface VerificationSession {
-    success: boolean;
-    verification: any;
-    sdkToken?: string;
-}
+import { api } from "@/lib/api";
 
 export function KYCWizard() {
     const [step, setStep] = useState<"intro" | "tier" | "processing" | "success">("intro");
@@ -56,7 +50,7 @@ export function KYCWizard() {
             setStep("success");
             toast.success("Identity Verified Successfully!");
 
-        } catch (err) {
+        } catch {
             toast.error("Verification processing failed");
         } finally {
             setLoading(false);

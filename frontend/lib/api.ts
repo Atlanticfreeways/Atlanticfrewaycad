@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 export class ApiClient {
   private baseURL: string;
   private token: string | null = null;
@@ -82,15 +83,17 @@ export class ApiClient {
     return this.request<T>(endpoint, { method: 'GET' });
   }
 
-  post<T>(endpoint: string, body: any) {
+  post<T>(endpoint: string, body: any, options: RequestInit = {}) {
     return this.request<T>(endpoint, {
+      ...options,
       method: 'POST',
       body: JSON.stringify(body),
     });
   }
 
-  put<T>(endpoint: string, body: any) {
+  put<T>(endpoint: string, body: any, options: RequestInit = {}) {
     return this.request<T>(endpoint, {
+      ...options,
       method: 'PUT',
       body: JSON.stringify(body),
     });
@@ -98,3 +101,7 @@ export class ApiClient {
 }
 
 export const api = new ApiClient();
+
+export const dashboardAPI = {
+  getMetrics: () => api.get<any>('/dashboard/metrics')
+};
