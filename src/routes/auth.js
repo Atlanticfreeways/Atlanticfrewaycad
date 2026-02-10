@@ -11,6 +11,9 @@ const { csrfProtection } = require('../middleware/csrfProtection');
 const { validate, schemas } = require('../middleware/validation');
 
 const router = express.Router();
+const passwordResetRoutes = require('./auth/passwordReset');
+
+router.use('/', passwordResetRoutes);
 
 const COOKIE_OPTIONS = {
   httpOnly: true,

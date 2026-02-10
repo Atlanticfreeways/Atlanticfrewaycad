@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import { useMutation } from '@tanstack/react-query';
 import axios from 'axios';
@@ -27,8 +27,9 @@ export default function RegisterPage() {
     const login = useAuthStore((state) => state.login);
 
     // Form State
+    const searchParams = useSearchParams();
     const [fullName, setFullName] = useState('');
-    const [email, setEmail] = useState('');
+    const [email, setEmail] = useState(searchParams.get('email') || '');
     const [companyName, setCompanyName] = useState('');
     const [password, setPassword] = useState('');
 

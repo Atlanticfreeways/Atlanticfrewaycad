@@ -14,7 +14,7 @@ import { FAQSection } from '@/components/landing/FAQSection';
 
 export default function LandingPage() {
   return (
-    <div className="bg-slate-950 min-h-screen text-white selection:bg-blue-600/30">
+    <div className="bg-zinc-950 min-h-screen text-white selection:bg-blue-600/30">
       {/* Sandbox Top-Bar */}
       <div className="bg-blue-600 py-3 px-4 relative z-[60]">
         <div className="max-w-7xl mx-auto flex items-center justify-center space-x-3">
@@ -22,7 +22,7 @@ export default function LandingPage() {
           <div className="w-[1px] h-3 bg-white/20" />
           <Link href="/auth/register" className="flex items-center space-x-2 group">
             <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white">Initialize your sandbox in 30 seconds</span>
-            <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+            <ArrowRight className="w-3 h-3 group-hover:tranzinc-x-1 transition-transform" />
           </Link>
         </div>
       </div>
@@ -41,7 +41,7 @@ export default function LandingPage() {
               className="inline-flex items-center space-x-3 px-4 py-2 bg-blue-600/10 border border-blue-500/20 rounded-full text-blue-400 text-[10px] font-black uppercase tracking-[0.2em]"
             >
               <Zap className="w-3 h-3 fill-current" />
-              <span>v2.0 Infrastructure Live</span>
+              <span>instant access available...</span>
             </motion.div>
 
             <motion.h1
@@ -57,7 +57,7 @@ export default function LandingPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
-              className="max-w-3xl mx-auto text-lg md:text-xl text-slate-400 font-medium leading-relaxed"
+              className="max-w-3xl mx-auto text-lg md:text-xl text-zinc-400 font-medium leading-relaxed"
             >
               Deploy physical and virtual card fleets instantly. Global ledger, high-speed rails,
               and bank-grade compliance built for the next generation of fintech innovators.
@@ -71,10 +71,10 @@ export default function LandingPage() {
             >
               <Link
                 href="/auth/register"
-                className="group w-full sm:w-auto bg-white text-black px-10 py-5 rounded-[2rem] font-black text-xl hover:bg-slate-100 transition-all active:scale-95 shadow-2xl shadow-white/5 flex items-center justify-center space-x-3"
+                className="group w-full sm:w-auto bg-white text-black px-10 py-5 rounded-[2rem] font-black text-xl hover:bg-zinc-100 transition-all active:scale-95 shadow-2xl shadow-white/5 flex items-center justify-center space-x-3"
               >
                 <span>Get Your Card</span>
-                <ArrowRight className="w-5 h-5 group-hover:translate-x-2 transition-transform" />
+                <ArrowRight className="w-5 h-5 group-hover:tranzinc-x-2 transition-transform" />
               </Link>
               <Link
                 href="/auth/login"
@@ -102,7 +102,7 @@ export default function LandingPage() {
           <IssuanceSpecs />
         </div>
 
-        <div id="solutions" className="py-32 bg-slate-900/30">
+        <div id="solutions" className="py-32 bg-zinc-900/30">
           <div className="max-w-7xl mx-auto px-4 md:px-8">
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
               <MainFeature icon={ShieldCheck} title="Compliance Hub" desc="SOC2, PCI-DSS, and KYB automated." />
@@ -134,12 +134,12 @@ export default function LandingPage() {
               Ready to build the <br />
               <span className="text-blue-500">future of money?</span>
             </h2>
-            <p className="max-w-2xl mx-auto text-slate-500 font-bold uppercase tracking-[0.2em] text-xs">
+            <p className="max-w-2xl mx-auto text-zinc-500 font-bold uppercase tracking-[0.2em] text-xs">
               Join 5,000+ companies using Atlantic to power their financial products.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
               <Link href="/auth/register" className="bg-blue-600 hover:bg-blue-500 text-white px-12 py-5 rounded-2xl font-black text-xl shadow-xl shadow-blue-600/30 active:scale-95 transition-all">Start Your Trial</Link>
-              <Link href="#" className="text-blue-500 font-black uppercase tracking-[0.2em] text-xs hover:text-white transition-colors">Contact Sales Force</Link>
+              <Link href="/contact" className="text-blue-500 font-black uppercase tracking-[0.2em] text-xs hover:text-white transition-colors">Contact Sales Force</Link>
             </div>
           </div>
         </section>
@@ -159,7 +159,7 @@ function MainFeature({ icon: Icon, title, desc }: any) {
       </div>
       <div>
         <h4 className="text-xl font-bold text-white mb-2 tracking-tight">{title}</h4>
-        <p className="text-sm text-slate-500 font-medium leading-relaxed">{desc}</p>
+        <p className="text-sm text-zinc-500 font-medium leading-relaxed">{desc}</p>
       </div>
     </div>
   )

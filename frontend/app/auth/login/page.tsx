@@ -117,11 +117,19 @@ export default function LoginPage() {
 
                     {/* All Auth Buttons - Social + Standard on same page */}
                     <div className="grid grid-cols-2 gap-4">
-                        <button type="button" className="flex items-center justify-center space-x-3 bg-white/5 border border-white/10 p-4 rounded-2xl hover:bg-white/10 transition-all group">
+                        <button
+                            type="button"
+                            onClick={() => toast.info("Social Authentication requires configured API keys.")}
+                            className="flex items-center justify-center space-x-3 bg-white/5 border border-white/10 p-4 rounded-2xl hover:bg-white/10 transition-all group"
+                        >
                             <Chrome className="w-5 h-5 text-slate-400 group-hover:text-white transition-colors" />
                             <span className="text-sm font-bold text-white">Google</span>
                         </button>
-                        <button type="button" className="flex items-center justify-center space-x-3 bg-white/5 border border-white/10 p-4 rounded-2xl hover:bg-white/10 transition-all group">
+                        <button
+                            type="button"
+                            onClick={() => toast.info("Social Authentication requires configured API keys.")}
+                            className="flex items-center justify-center space-x-3 bg-white/5 border border-white/10 p-4 rounded-2xl hover:bg-white/10 transition-all group"
+                        >
                             <Github className="w-5 h-5 text-slate-400 group-hover:text-white transition-colors" />
                             <span className="text-sm font-bold text-white">Github</span>
                         </button>
@@ -151,7 +159,7 @@ export default function LoginPage() {
                         <div className="space-y-3">
                             <div className="flex justify-between items-center px-1">
                                 <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Secret Key</label>
-                                <Link href="#" className="text-[10px] font-black text-blue-600 uppercase tracking-widest hover:text-white">Recover Access</Link>
+                                <Link href="/auth/forgot-password" className="text-[10px] font-black text-blue-600 uppercase tracking-widest hover:text-white">Recover Access</Link>
                             </div>
                             <div className="relative group">
                                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600 group-focus-within:text-blue-500 transition-colors" />
