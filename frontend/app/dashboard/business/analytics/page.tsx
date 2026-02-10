@@ -20,9 +20,9 @@ export default function AnalyticsPage() {
             try {
                 // Fetch parallel
                 const [catRes, empRes, trendRes] = await Promise.all([
-                    api.get(`/reports/business/spending-by-category?range=${period}`),
-                    api.get(`/reports/business/spending-by-employee?range=${period}`),
-                    api.get(`/reports/business/spending-trends?range=${period}`)
+                    api.get<any>(`/reports/business/spending-by-category?range=${period}`),
+                    api.get<any>(`/reports/business/spending-by-employee?range=${period}`),
+                    api.get<any>(`/reports/business/spending-trends?range=${period}`)
                 ]);
 
                 setCategoryData(catRes.data || []);

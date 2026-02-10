@@ -1,15 +1,18 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
+import { Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { api } from '@/lib/api';
-import { ArrowDown, Check, X, Clock, AlertTriangle, PlayCircle } from 'lucide-react';
-export default function JitVisualizerPage() {
-    const { token } = useParams();
-    const [trace, setTrace] = useState<any>(null); // Added type any to avoid implicit any error if strict
+import { ArrowDown, Check, X, Clock, AlertTriangle, PlayCircle, Loader2 } from 'lucide-react';
+
+function JitVisualizerContent() {
+    const searchParams = useSearchParams();
+    const token = searchParams.get('token');
+    const [trace, setTrace] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -167,5 +170,13 @@ export default function JitVisualizerPage() {
 
             </div>
         </div>
+    );
+}
+
+export default function JitVisualizerPage() {
+    return (
+        <Suspense fallback={<div className="flex h-screen items-center justify-center"><Loader2 className="w-8 h-8 text-blue-600 animate-spin" /></div>}>
+            <JitVisualizerContent />
+        </Suspense>
     );
 }

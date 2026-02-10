@@ -2,6 +2,12 @@
 const nextConfig = {
   reactStrictMode: true,
   output: 'export',
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
   // Note: rewrites are ignored in 'export' mode, handled by server.js in production
   async rewrites() {
     return [

@@ -35,7 +35,7 @@ export default function ContactPage() {
                             Get in <span className="text-blue-500">touch.</span>
                         </h1>
                         <p className="max-w-2xl mx-auto text-xl text-zinc-400 font-medium">
-                            Whether you're exploring enterprise options or need technical assistance, our team is ready to help.
+                            Whether you&apos;re exploring enterprise options or need technical assistance, our team is ready to help.
                         </p>
                     </div>
 

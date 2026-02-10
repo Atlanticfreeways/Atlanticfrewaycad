@@ -7,7 +7,6 @@ import { useAuthStore } from '@/store/authStore';
 import { useMutation } from '@tanstack/react-query';
 import axios from 'axios';
 import { toast } from 'sonner';
-import { motion } from 'framer-motion';
 import {
     Github,
     Chrome,

@@ -89,7 +89,7 @@ export default function ProfilePage() {
 
     const handleSave = async () => {
         // Validate form
-        const validation = validateForm(profileSchema, formData);
+        const validation: any = validateForm(profileSchema, formData);
         if (!validation.success) {
             setFormErrors(validation.errors);
             toast.error('Please fix the errors in the form');

@@ -41,7 +41,7 @@ export class ApiClient {
   }
 
   // eslint-disable-next-line no-undef
-  async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+  async request<T = any>(endpoint: string, options: RequestInit = {}): Promise<T> {
     const headers: any = {
       'Content-Type': 'application/json',
       ...(options.headers || {}),
@@ -79,11 +79,11 @@ export class ApiClient {
     return response.json();
   }
 
-  get<T>(endpoint: string) {
+  get<T = any>(endpoint: string) {
     return this.request<T>(endpoint, { method: 'GET' });
   }
 
-  post<T>(endpoint: string, body: any, options: RequestInit = {}) {
+  post<T = any>(endpoint: string, body: any, options: RequestInit = {}) {
     return this.request<T>(endpoint, {
       ...options,
       method: 'POST',
@@ -91,7 +91,7 @@ export class ApiClient {
     });
   }
 
-  put<T>(endpoint: string, body: any, options: RequestInit = {}) {
+  put<T = any>(endpoint: string, body: any, options: RequestInit = {}) {
     return this.request<T>(endpoint, {
       ...options,
       method: 'PUT',

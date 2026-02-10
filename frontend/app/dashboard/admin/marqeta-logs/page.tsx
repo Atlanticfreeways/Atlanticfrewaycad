@@ -120,7 +120,7 @@ export default function MarqetaLogsPage() {
                                                     className="text-blue-600 border-blue-200 bg-blue-50"
                                                     onClick={(e) => {
                                                         e.stopPropagation();
-                                                        window.location.href = `/dashboard/admin/jit-visualizer/${log.event_token}`;
+                                                        window.location.href = `/dashboard/admin/jit-visualizer?token=${log.event_token}`;
                                                     }}
                                                 >
                                                     <AlertTriangle className="h-4 w-4 mr-2" />

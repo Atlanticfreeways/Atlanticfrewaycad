@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import { useMutation } from '@tanstack/react-query';
@@ -22,7 +23,7 @@ import {
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api/v1';
 
-export default function RegisterPage() {
+function RegisterForm() {
     const router = useRouter();
     const login = useAuthStore((state) => state.login);
 
@@ -45,10 +46,6 @@ export default function RegisterPage() {
         },
         onSuccess: (data) => {
             console.log("Registration success:", data);
-            // Assuming the API returns user and token structure similar to login
-            // If the API automatically logs them in, great. 
-            // If not, we might need to redirect to login or auto-login.
-            // Based on typical auth flows, we usually get a token back.
             if (data.token && data.user) {
                 login(data.user, data.token);
                 toast.success("Workspace created successfully!");
@@ -128,7 +125,7 @@ export default function RegisterPage() {
                         <p className="text-slate-500 font-bold text-sm">Join the ecosystem in seconds. Personal or Enterprise.</p>
                     </div>
 
-                    {/* Social Auth Buttons - Highly Visible as requested */}
+                    {/* Social Auth Buttons */}
                     <div className="grid grid-cols-2 gap-4">
                         <SocialButton icon={Chrome} label="Google" />
                         <SocialButton icon={Github} label="Github" />
@@ -207,6 +204,14 @@ export default function RegisterPage() {
                 </div>
             </div>
         </div>
+    );
+}
+
+export default function RegisterPage() {
+    return (
+        <Suspense fallback={<div className="min-h-screen bg-slate-950 flex items-center justify-center"><Loader2 className="w-8 h-8 text-blue-600 animate-spin" /></div>}>
+            <RegisterForm />
+        </Suspense>
     );
 }
 
